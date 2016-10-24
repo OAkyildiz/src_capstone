@@ -1,5 +1,5 @@
 /*
- * vision_node.cpp
+ * node_main.cpp
  *
  *  Created on: Oct 3, 2016
  *      Author: oakyildiz, Ozan Akyıldız
@@ -7,21 +7,17 @@
  *
  */
 
-#include <ros/ros.h>
-#include "vision/vision.h"
-
-using namespace vision;
+#include "node/node.h"
 
 int main( int argc, char** argv ) {
 
- VisionNode* node = new VisionNode(argc, argv);
+ Node* node = new Node(argc, argv);
 
 
 
- node->init("vision_node");
+ node->init("node");
  node->run();
    //detection stuff here
 
   return 0;
 }
-

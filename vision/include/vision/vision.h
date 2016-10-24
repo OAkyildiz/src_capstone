@@ -7,13 +7,12 @@
  *
  */
 
-#ifndef INCLUDE_VISION_NODE_H_
-#define INCLUDE_VISION_NODE_H_
+#ifndef INCLUDE_VISION_H_
+#define INCLUDE_VISION_H_
 
 #include <string.h>
 
-#include <ros/ros.h>
-#include <ros/console.h>
+#include "node/node.h"
 
 #include <cv_bridge/rgb_colors.h>
 #include <cv_bridge/cv_bridge.h>
@@ -23,51 +22,31 @@
 
 namespace vision {
 
-class VisionNode {
+class VisionNode: public Node {
 public:
 	VisionNode(int argc, char** argv);
-	virtual ~VisionNode();
+	virtual ~VisionNode(){}
 
-	bool init(const std::string &name = "vision_node");
-	bool init(const std::string &name, const std::string &master_url, const std::string &host_url);
-	void run();
-
-
-	/* Members */
-	ros::NodeHandle* nh_;
-
-	/* Getters & Setters */
-	const ros::NodeHandle* get_nh() const {
-			return nh_;
-		}
 private:
 
 	/* Members */
-	int init_argc;
-	char** init_argv;
-
-	ros::NodeHandle* pnh_;
-
-	ros::Subscriber* sub_list[];
-	ros::Publisher* pub_list[];
-
 
 	ros::Subscriber main_camera_sub;
 	ros::Subscriber secondary_camera_Sub;
 
 	ros::Publisher something_pub;
 
+	//static bool IS_STEREO = true;
+	bool IS_STEREO;
+
+	virtual void operation();
+	virtual void setup_params();
+
 	bool visionCallback(const sensor_msgs::ImageConstPtr& image);
 	bool publish();
 	bool subscribe();
 
 	int convertImage(const sensor_msgs::ImageConstPtr image);
-	bool placeholder_do_light_stuff();
-
-	bool setup();
-
-	double RATE = 60;
-	bool IS_STEREO = true;
 
 };
 
@@ -81,4 +60,4 @@ private:
 };
 } /* namespace vision */
 
-#endif /* INCLUDE_VISION_NODE_H_ */
+#endif /* INCLUDE_VISION_H_ */

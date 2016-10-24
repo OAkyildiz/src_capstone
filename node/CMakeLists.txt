@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vision)
+project(node)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  node
-  cv_bridge
 )
-find_package(OpenCV 2 REQUIRED )
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -101,9 +99,9 @@ find_package(OpenCV 2 REQUIRED )
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES vision 
-  CATKIN_DEPENDS cv_bridge opencv roscpp node
-  #DEPENDS system_lib
+  LIBRARIES node
+  CATKIN_DEPENDS roscpp
+#  DEPENDS system_lib
 )
 
 ###########
@@ -115,36 +113,16 @@ catkin_package(
 include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(vision
-  src/${PROJECT_NAME}/vision.cpp
-  src/${PROJECT_NAME}/vision_node.cpp
-  
-)
-
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(vision ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ add_library(node src/${PROJECT_NAME}/node.cpp)
+ add_dependencies(node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(node  ${catkin_LIBRARIES})
 ## Declare a C++ executable
-add_executable(vision_node 
-  src/${PROJECT_NAME}/vision.cpp
-  src/${PROJECT_NAME}/vision_node.cpp
-  
-)
-
-## Add cmake target dependencies of the executable
-## same as for the library above
- add_dependencies(vision_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
- target_link_libraries(vision_node
-   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
-)
+ add_executable(node_run src/node/node_main.cpp)
+ add_dependencies(node_run ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(node_run  ${catkin_LIBRARIES} node)
 
 #############
 ## Install ##
@@ -161,7 +139,7 @@ add_executable(vision_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS vision vision_node
+# install(TARGETS node node_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -186,7 +164,7 @@ add_executable(vision_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_vision.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_node.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

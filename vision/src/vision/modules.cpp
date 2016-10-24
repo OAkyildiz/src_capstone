@@ -5,7 +5,5 @@
  *      Author: oakyildiz
  */
 
-
-
 #include "vision/vision.h"
 
