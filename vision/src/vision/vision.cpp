@@ -14,7 +14,8 @@ using namespace vision;
 
 int main( int argc, char** argv ) {
 
- VisionNode* node = new VisionNode(argc, argv);
+ LightModule* light_detector =  LightModule("stream",170);
+ VisionNode* node = new VisionNode(light_detector, argc, argv);
 
 
 

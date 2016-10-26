@@ -56,7 +56,8 @@ bool Node::setup() {
 		pnh_ = new ros::NodeHandle("~");
 
 		pnh_->param<double>("rate", RATE, 20);
-		setup_params();
+		setupParams();
+		setupCustom();
 		/*subs and pubs*/
 
 		return true;

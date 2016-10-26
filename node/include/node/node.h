@@ -45,8 +45,9 @@ private:
 
 	bool setup();
 	/* member functions to customize node*/
+	virtual void setupParams(){}
+	virtual void setupCustom(){}
 	virtual void operation(){}
-	virtual void setup_params(){}
 
 	/*hash map of values*/
 	//HashMap<std::string, double> params;

@@ -11,19 +11,26 @@
 
 namespace vision{
 /* Node */
-VisionNode::VisionNode(int argc, char** argv):
-		Node(argc,argv),
-		IS_STEREO(true)
+VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
+	Node(argc,argv),
+	IS_STEREO(true),
+	module(module)
 	{}
 
-void VisionNode::operation() {
-// operations here
+
+void VisionNode::setupParams() {
+	pnh_->param<bool>("is_stereo", IS_STEREO,20);
+	/*subs and pubs*/
+}
+
+virtual void setupCustom(){
 
 }
 
-void VisionNode::setup_params() {
-	pnh_->param<bool>("is_stereo", IS_STEREO,20);
-	/*subs and pubs*/
+void VisionNode::operation() {
+// operations here
+	module->doVision();
+	module->present();
 }
 
 /* Operations */

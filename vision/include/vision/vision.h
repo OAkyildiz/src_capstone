@@ -20,17 +20,19 @@
 
 #include "opencv2/opencv.hpp"
 
+//TODO: seperate modules.h, independent from cv_bridge
+
 namespace vision {
 
 class VisionNode: public Node {
 public:
-	VisionNode(int argc, char** argv);
+	VisionNode(VisionModule* module, int argc, char** argv);
 	virtual ~VisionNode(){}
 
 private:
 
 	/* Members */
-
+	VisionModule* module;
 	ros::Subscriber main_camera_sub;
 	ros::Subscriber secondary_camera_Sub;
 
@@ -39,8 +41,9 @@ private:
 	//static bool IS_STEREO = true;
 	bool IS_STEREO;
 
+	virtual void setupParams();
+	virtual void setupCustom();
 	virtual void operation();
-	virtual void setup_params();
 
 	bool visionCallback(const sensor_msgs::ImageConstPtr& image);
 	bool publish();
@@ -50,12 +53,59 @@ private:
 
 };
 
+using namespace cv;
 
 class VisionModule{
 public:
-	VisionModule();
-	virtual ~VisionModule(){}
+	VisionModule(std::string name);
+	virtual ~VisionModule();
+
+protected:
+	virtual void doVision(){}
+	virtual void present(){}
+
 private:
+	Mat colored;
+	std::string window_name;
+
+
+
+};
+
+class LightModule: public VisionModule{
+
+public:
+	LightModule(std::string name,short int t);
+	virtual ~LightModule(){}
+
+	void doVision(){}
+private:
+	/* parameters*/
+	short int threshold;
+
+	/* members */
+	double max;
+	int r;
+	Scalar color;
+	Mat grayscale;
+	cv::Point min_pt;
+	cv::Point max_pt;
+	void cvtGray(Size size,double sigma);
+	void present();
+};
+
+class ObjectModule: public VisionModule{
+public:
+	ObjectModule(std::string name);
+	virtual ~ObjectModule(){}
+
+	virtual void doVision(){}
+
+private:
+	/* parameters */
+
+	/* members */
+	void present();
 
 };
 } /* namespace vision */
