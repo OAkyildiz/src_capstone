@@ -20,9 +20,19 @@
 
 #include "opencv2/opencv.hpp"
 
-//TODO: seperate modules.h, independent from cv_bridge
+//TODO: separate modules.h, independent from cv_bridge
 
 namespace vision {
+enum NodeType {
+	LIGHT =0, LIGHT_DETECTION =0, TASK1= 0,
+	OBJECT = 1, DOOR = 1, BUTTON = 1, TASK2=1
+};
+
+bool IS_STEREO = false;
+NodeType NODE_TYPE = 0;
+
+std::string MAIN_CAMERA = "/main_camera/";
+std::string SECONDARY_CAMERA = "/second_camera/";
 
 class VisionNode: public Node {
 public:
@@ -39,7 +49,7 @@ private:
 	ros::Publisher something_pub;
 
 	//static bool IS_STEREO = true;
-	bool IS_STEREO;
+
 
 	virtual void setupParams();
 	virtual void setupCustom();

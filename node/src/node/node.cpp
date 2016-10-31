@@ -13,7 +13,6 @@
 Node::Node(int argc, char** argv):
 			  init_argc(argc),
 			  init_argv(argv),
-			  RATE(30),
 			  nh_(0),
 			  pnh_(0)
 {}

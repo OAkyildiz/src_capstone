@@ -15,6 +15,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+double RATE = 60;
+
 class Node {
 public:
 	Node(int argc, char** argv);
@@ -52,7 +54,6 @@ private:
 	/*hash map of values*/
 	//HashMap<std::string, double> params;
 	//static double RATE = 60;
-	double RATE;
 };
 
 #endif /* INCLUDE_NODE_H_ */

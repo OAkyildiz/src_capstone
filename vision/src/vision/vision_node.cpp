@@ -13,13 +13,17 @@ namespace vision{
 /* Node */
 VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
 	Node(argc,argv),
-	IS_STEREO(true),
 	module(module)
 	{}
 
 
 void VisionNode::setupParams() {
-	pnh_->param<bool>("is_stereo", IS_STEREO,20);
+	pnh_->param<bool>("is_stereo", IS_STEREO,true);
+	pnh_->param<NodeType>("node_type", NODE_TYPE,LIGHT);
+	pnh_->param<std::string>("main_camera",MAIN_CAMERA,"/usb_cam/");
+	pnh_->param<std::string>("secondary_camera", SECONDARY_CAMERA,"/secondary_camera/");
+
+
 	/*subs and pubs*/
 }
 
