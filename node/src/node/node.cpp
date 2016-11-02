@@ -10,6 +10,8 @@
 
 #include "node/node.h"
 
+double RATE = 60;
+
 Node::Node(int argc, char** argv):
 			  init_argc(argc),
 			  init_argv(argv),

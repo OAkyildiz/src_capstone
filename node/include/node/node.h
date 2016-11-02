@@ -15,7 +15,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-double RATE = 60;
+extern double RATE;
 
 class Node {
 public:
