@@ -5,7 +5,8 @@
  *      Author: oakyildiz
  */
 
-#include "vision/vision.h"
+#include "vision/modules.h"
+#include "ros/ros.h"
 
 using namespace vision;
 using namespace cv;
@@ -59,10 +60,10 @@ void LightModule::present(){
 
 	        // debug
 	        // color
-	        printf("val: %.0f  at (%d, %d)	",max, max_pt.x, max_pt.y);
-	        printf("r: %d    BGR:(%.0f, %.0f, %.0f) \n",r/2 , color[0], color[1], color[2] );
+	        ROS_INFO("val: %.0f  at (%d, %d)	",max, max_pt.x, max_pt.y);
+	        ROS_INFO("r: %d    BGR:(%.0f, %.0f, %.0f) \n",r/2 , color[0], color[1], color[2] );
 	        // exit on key
-	        if(waitKey(30) >= 0) break;
+	        //if(waitKey(30) >= 0) break;
 }
 
 void LightModule::cvtGray(Size size, double sigma){
@@ -77,5 +78,7 @@ ObjectModule::ObjectModule(std::string name):
 {
 }
 
+void ObjectModule::doVision(){}
+void ObjectModule::present(){}
 
 

@@ -1,5 +1,5 @@
 /*
- * vision_node.cpp
+ * light_detection_node.cpp
  *
  *  Created on: Oct 3, 2016
  *      Author: oakyildiz, Ozan Akyıldız
@@ -7,22 +7,65 @@
  *
  */
 
-#include <ros/ros.h>
 #include "vision/vision.h"
 
+bool IS_STEREO = false;
+
+std::string MAIN_CAMERA = "/usb_cam";
+std::string SECONDARY_CAMERA = "/secondary_camera";
+
 using namespace vision;
+/* Node */
+VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
+	Node(argc,argv),
+	module(module)
+	{}
 
-int main( int argc, char** argv ) {
 
- LightModule* light_detector =  LightModule("stream",170);
- VisionNode* node = new VisionNode(light_detector, argc, argv);
+void VisionNode::setupParams() {
+	pnh_->param<bool>("is_stereo", IS_STEREO,true);
+	//pnh_->param<NodeType>("node_type", NODE_TYPE,LIGHT);
+	pnh_->param<std::string>("main_camera",MAIN_CAMERA,"/usb_cam/");
+	pnh_->param<std::string>("secondary_camera", SECONDARY_CAMERA,"/secondary_camera/");
 
 
-
- node->init("vision_node");
- node->run();
-   //detection stuff here
-
-  return 0;
+	/*subs and pubs*/
 }
+void VisionNode::setupCustom(){
+
+}
+
+void VisionNode::operation() {
+// operations here
+	module->doVision();
+	module->present();
+}
+
+/* Operations */
+bool VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
+	return convertImage(image);
+
+}
+
+int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image) {
+
+	cv_bridge::CvImagePtr cv_ptr;
+	try
+	{
+		cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+		return 0;
+	}
+	catch (cv_bridge::Exception& e)
+	{
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		return 1;
+	}
+}
+
+
+
+//} //namespace vision
+
+
+
 

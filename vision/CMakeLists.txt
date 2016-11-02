@@ -120,8 +120,8 @@ include_directories(
 
 ## Declare a C++ library
 add_library(vision
+  src/${PROJECT_NAME}/modules.cpp
   src/${PROJECT_NAME}/vision.cpp
-  src/${PROJECT_NAME}/vision_node.cpp
   
 )
 
@@ -131,21 +131,29 @@ add_library(vision
 # add_dependencies(vision ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(vision_node 
+add_executable(light_detection_node 
   src/${PROJECT_NAME}/vision.cpp
-  src/${PROJECT_NAME}/vision_node.cpp
-  
+  src/${PROJECT_NAME}/modules.cpp
+  src/${PROJECT_NAME}/light_node.cpp
+)
+
+add_executable(object_recognition_node 
+  src/${PROJECT_NAME}/vision.cpp
+  src/${PROJECT_NAME}/modules.cpp
+  src/${PROJECT_NAME}/object_node.cpp
 )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
- add_dependencies(vision_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ add_dependencies(object_recognition_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(light_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
- target_link_libraries(vision_node
+ target_link_libraries(light_detection_node
    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
-
+ target_link_libraries(object_recognition_node
+   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+)
 #############
 ## Install ##
 #############
