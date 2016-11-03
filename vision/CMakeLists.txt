@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   node
   cv_bridge
+  image_transport
 )
 find_package(OpenCV 2 REQUIRED )
 ## System dependencies are found with CMake's conventions
@@ -102,8 +103,8 @@ find_package(OpenCV 2 REQUIRED )
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES vision 
-  CATKIN_DEPENDS cv_bridge opencv roscpp node
-  #DEPENDS system_lib
+  CATKIN_DEPENDS roscpp cv_bridge image_transport node
+  DEPENDS opencv
 )
 
 ###########

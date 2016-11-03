@@ -20,10 +20,12 @@ int main( int argc, char** argv ) {
 //
 
 
- node->init("vision_node");
- node->run();
+ if(node->init("vision_node")){
+	 node->run();
+ 	 return 0;
+}
    //detection stuff here
-
-  return 0;
+ else
+	 return 0;
 }
 

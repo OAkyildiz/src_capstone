@@ -1,7 +1,12 @@
 <!-- Luanch file for light detection -->
 <launch>
-    <arg name="stereo" default="true"/> <!-- STEREO OR MONO CAMERA-->
+
+    <arg name="webcam" default="false"/>
+    <arg name=>
     
+    <arg if="$(arg webcam)" name="stereo" default="true"/> <!-- STEREO OR MONO CAMERA-->
+    
+
     <!-- Main camera is the left one if we have stereo vision-->   
     <arg if="$(arg stereo)" name="main_camera" default=""/>
     <arg if="$(arg stereo)" name="secondary_camera" default=""/>
