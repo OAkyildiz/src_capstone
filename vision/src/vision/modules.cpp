@@ -14,6 +14,8 @@ using namespace cv;
 VisionModule::VisionModule(std::string name)
 {
 	namedWindow(window_name, 1);
+	startWindowThread();
+
 }
 
 VisionModule::~VisionModule(){
@@ -58,6 +60,7 @@ void LightModule::doVision(){
 }
 void LightModule::present(){
 	imshow(window_name, colored);
+    waitKey(1);
 
 	// debug
 	// color
