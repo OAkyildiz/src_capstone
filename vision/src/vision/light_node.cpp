@@ -20,7 +20,7 @@ int main( int argc, char** argv ) {
 //
 
 
- if(node->init("vision_node")){
+ if(node->init("light_detection")){
 	 node->run();
  	 return 0;
 }

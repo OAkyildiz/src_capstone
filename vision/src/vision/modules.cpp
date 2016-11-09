@@ -23,10 +23,10 @@ VisionModule::~VisionModule(){
 /* LightModule: Light Detection Module*/
 
 LightModule::LightModule(std::string name, short int t):
-			VisionModule(name),
-			threshold(t),
-			max(0), r(0),
-			color(0,0,0)
+					VisionModule(name),
+					threshold(t),
+					max(0), r(0),
+					color(0,0,0)
 {
 }
 
@@ -59,12 +59,12 @@ void LightModule::doVision(){
 void LightModule::present(){
 	imshow(window_name, colored);
 
-	        // debug
-	        // color
-	        ROS_INFO("val: %.0f  at (%d, %d)	",max, max_pt.x, max_pt.y);
-	        ROS_INFO("r: %d    BGR:(%.0f, %.0f, %.0f) \n",r/2 , color[0], color[1], color[2] );
-	        // exit on key
-	        //if(waitKey(30) >= 0) break;
+	// debug
+	// color
+	ROS_INFO("val: %.0f  at (%d, %d)	",max, max_pt.x, max_pt.y);
+	ROS_INFO("r: %d    BGR:(%.0f, %.0f, %.0f) \n",r/2 , color[0], color[1], color[2] );
+	// exit on key
+	//if(waitKey(30) >= 0) break;
 }
 
 void LightModule::cvtGray(Size size, double sigma){
@@ -75,7 +75,7 @@ void LightModule::cvtGray(Size size, double sigma){
 /* ObjectModule: Light Detection Module*/
 
 ObjectModule::ObjectModule(std::string name):
-			VisionModule(name)
+					VisionModule(name)
 {
 }
 
