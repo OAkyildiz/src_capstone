@@ -60,7 +60,7 @@ void LightModule::doVision(){
 }
 void LightModule::present(){
 	imshow(window_name, colored);
-    waitKey(1);
+    waitKey(5);
 
 	// debug
 	// color
