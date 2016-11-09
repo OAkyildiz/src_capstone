@@ -1,0 +1,22 @@
+<launch>
+  <arg name="camera_ns"         default="multisense/camera"/>      
+  <arg name="image"             default="image_raw"/>
+  <arg name="approximate_sync" default="true"/>
+  <arg name="queue_size"       default="100"/>
+
+  <node ns="$(arg camera_ns)" name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc" >
+    <remap from="image"             to="$(arg image)"/>
+    <param name="_approximate_sync" value="$(arg approximate_sync)"/>
+    <param name="_queue_size"       value="$(arg queue_size)"/>
+  </node>
+
+
+  <node name="stereo_view" pkg="image_view" type="stereo_view" >
+    
+    <remap from="stereo"            to="$(arg camera_ns)"/>    
+    <remap from="image"             to="$(arg image)"/>
+    <param name="_approximate_sync" value="$(arg approximate_sync)"/>
+    <param name="_queue_size"       value="$(arg queue_size)"/>
+
+  </node>
+</launch>

@@ -75,7 +75,9 @@ void VisionNode::operation() {
 
 /* Operations */
 void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
-	convertImage(image);
+	module->colored = convertImage(image);
+	module->doVision();
+
 
 }
 void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {

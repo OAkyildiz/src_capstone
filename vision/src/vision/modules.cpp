@@ -54,6 +54,7 @@ void LightModule::doVision(){
 		r = 0;
 
 	}
+	present();
 }
 void LightModule::present(){
 	imshow(window_name, colored);

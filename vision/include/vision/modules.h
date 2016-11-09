@@ -23,8 +23,9 @@ public:
 	virtual void doVision() = 0;
 	virtual void present() = 0;
 
-protected:
 	Mat colored;
+
+protected:
 	std::string window_name;
 
 //private:
@@ -39,6 +40,7 @@ public:
 	virtual ~LightModule(){}
 
 	void doVision();
+
 private:
 	/* parameters*/
 	short int threshold;
