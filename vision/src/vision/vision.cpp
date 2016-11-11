@@ -95,7 +95,7 @@ int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image) {
 	try
 	{
 		cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
-		module->colored=cv_ptr->image;
+		module->input=cv_ptr->image;
 		return 0;
 	}
 	catch (cv_bridge::Exception& e)

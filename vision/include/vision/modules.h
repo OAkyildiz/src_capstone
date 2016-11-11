@@ -16,6 +16,18 @@ extern int THRESHOLD;
 using namespace cv;
 namespace vision{
 
+const Scalar HSV_RED_LOW = Scalar(0,100,100);
+const Scalar HSV_RED_HIGH = Scalar(15,255,255);
+
+const Scalar HSV_RED_2_LOW = Scalar(160,100,100);
+const Scalar HSV_RED_2_HIGH = Scalar(179,255,255);
+
+const Scalar HSV_GREEN_LOW = Scalar(20,100,100);
+const Scalar HSV_GREEN_HIGH = Scalar(30,255,255);
+
+const Scalar HSV_BLUE_LOW = Scalar(34,100,100);
+const Scalar HSV_BLUE_HIGH = Scalar(80,255,255);
+
 
 class VisionModule{
 public:
@@ -26,7 +38,9 @@ public:
 	virtual void doVision() = 0;
 	virtual void present() = 0;
 
-	Mat colored;
+	Mat input;
+	Mat output;
+
 
 protected:
 	std::string window_name;
@@ -61,13 +75,16 @@ private:
 	int r;
 	Scalar color;
 
-	Mat extra1;
-	Mat extra2;
+	Mat red_ch;
+	Mat green_ch;
+	Mat blue_ch;
+
 	Mat grayscale;
 
 	Point min_pt;
 	Point max_pt;
 	void cvtGray(Size size,double sigma);
+	void seperateChannels(Mat in, Mat out);
 	void present();
 };
 

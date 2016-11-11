@@ -12,6 +12,8 @@ int THRESHOLD = 10;
 using namespace vision;
 using namespace cv;
 
+
+
 VisionModule::VisionModule(std::string name)
 {
 	namedWindow(window_name, 1);
@@ -34,16 +36,18 @@ LightModule::LightModule(std::string name, short int t):
 }
 
 void LightModule::doVision(){
-	//inRange(colored, cv::Scalar(0, 0, 0), cv::Scalar(180, 180, 180), colored);
+	//inRange(input, cv::Scalar(0, 0, 0), cv::Scalar(180, 180, 180), colored);
 	cvtGray(Size(7,7), 2);
+	seperateChannels(input,output);
+
 	double min;
-	cv::minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
+	minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
 
 	int r=0;
 	if (max > threshold){
 		// dynamic radius
 		r = max / 10 + 2;
-		Vec3b pixel = colored.at<Vec3b>(max_pt);
+		Vec3b pixel = input.at<Vec3b>(max_pt);
 		color = Scalar(pixel.val[0]-r, pixel.val[1]-r, pixel.val[2]-r);
 		// constant radius
 		// int r=10;
@@ -59,7 +63,7 @@ void LightModule::doVision(){
 	present();
 }
 void LightModule::present(){
-	imshow(window_name, grayscale);
+	imshow(window_name, output);
     //waitKey(5);
 
 	// debug
@@ -71,8 +75,33 @@ void LightModule::present(){
 }
 
 void LightModule::cvtGray(Size size, double sigma){
-	cvtColor(colored, grayscale, CV_RGB2GRAY);
+	cvtColor(input, grayscale, CV_RGB2GRAY);
 	GaussianBlur(grayscale, grayscale, size,sigma, sigma);
+}
+
+void LightModule::seperateChannels(Mat in, Mat out){
+	// create local Mats
+	Mat hsv_img, red1,red2, interim;
+	// convert colors
+	cvtColor(in, hsv_img, cv::COLOR_BGR2HSV);
+
+	//red
+	inRange(hsv_img, HSV_RED_LOW,HSV_RED_HIGH, red1);
+	inRange(hsv_img, HSV_RED_2_LOW,HSV_RED_2_HIGH, red2);
+	add(red1,red2,red_ch);
+
+	//blue
+	inRange(hsv_img,HSV_BLUE_LOW, HSV_BLUE_HIGH, blue_ch);
+
+	//green
+	inRange(hsv_img, HSV_GREEN_LOW,HSV_GREEN_HIGH, green_ch);
+
+	//finalize
+	add(red_ch,blue_ch, interim);
+	//add(interim, green_ch, hsv_img);
+	cvtColor(hsv_img, out, cv::COLOR_HSV2BGR);
+
+
 }
 
 /* ObjectModule: Light Detection Module*/
