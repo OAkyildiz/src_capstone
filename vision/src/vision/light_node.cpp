@@ -15,17 +15,20 @@ using namespace vision;
 
 int main( int argc, char** argv ) {
 
- VisionModule* light_detector =  new LightModule("stream",170);
+ LightModule* light_detector =  new LightModule("stream",170);
  VisionNode* node = new VisionNode(light_detector, argc, argv);
 //
 
 
  if(node->init("light_detection")){
+	 node->nh_->param("threshold",THRESHOLD,THRESHOLD);
+	 light_detector->setThreshold(THRESHOLD);
+	 int t = light_detector->getThreshold();
+	 ROS_INFO("threshold: %d \n", t);
 	 node->run();
  	 return 0;
 }
-   //detection stuff here
  else
-	 return 0;
+	 return 1;
 }
 

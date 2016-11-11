@@ -10,6 +10,9 @@
 
 #include "opencv2/opencv.hpp"
 
+
+extern int THRESHOLD;
+
 using namespace cv;
 namespace vision{
 
@@ -41,6 +44,14 @@ public:
 
 	void doVision();
 
+	void setThreshold(short int threshold) {
+		this->threshold = threshold;
+	}
+
+	short int getThreshold() const {
+		return threshold;
+	}
+
 private:
 	/* parameters*/
 	short int threshold;
@@ -49,7 +60,11 @@ private:
 	double max;
 	int r;
 	Scalar color;
+
+	Mat extra1;
+	Mat extra2;
 	Mat grayscale;
+
 	Point min_pt;
 	Point max_pt;
 	void cvtGray(Size size,double sigma);

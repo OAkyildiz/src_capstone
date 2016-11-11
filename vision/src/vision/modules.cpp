@@ -8,6 +8,7 @@
 #include "vision/modules.h"
 #include "ros/ros.h"
 
+int THRESHOLD = 10;
 using namespace vision;
 using namespace cv;
 
@@ -33,13 +34,12 @@ LightModule::LightModule(std::string name, short int t):
 }
 
 void LightModule::doVision(){
+	//inRange(colored, cv::Scalar(0, 0, 0), cv::Scalar(180, 180, 180), colored);
 	cvtGray(Size(7,7), 2);
-
-	double min, max;
+	double min;
 	cv::minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
 
 	int r=0;
-	Scalar color;
 	if (max > threshold){
 		// dynamic radius
 		r = max / 10 + 2;
@@ -49,7 +49,7 @@ void LightModule::doVision(){
 		// int r=10;
 
 
-		circle(colored, max_pt, r,  color, 3, 8, 0);
+		circle(grayscale, max_pt, r,  color, 3, 8, 0);
 	}
 	else{
 		color = Scalar(0,0,0);
@@ -59,8 +59,8 @@ void LightModule::doVision(){
 	present();
 }
 void LightModule::present(){
-	imshow(window_name, colored);
-    waitKey(5);
+	imshow(window_name, grayscale);
+    //waitKey(5);
 
 	// debug
 	// color
