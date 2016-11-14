@@ -66,8 +66,12 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	}
 
 }
-
+/*READ*/
+// For the following two functions, running with each callback or with node rate is possible.
+// Decide if either presenting or image ops are worth operating at node's rate.
+// If so, put them on operation() accordingly with proper flags and null checks.
 void VisionNode::operation() {
+
 	// operations here
 	//module->doVision();
 	//module->present();
@@ -76,7 +80,12 @@ void VisionNode::operation() {
 /* Operations */
 void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 	if( convertImage(image) == 0){
+		int e1 = getTickCount();
 		module->doVision();
+		int e2 = getTickCount();
+
+		ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
+
 	}
 
 
@@ -95,7 +104,7 @@ int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image) {
 	try
 	{
 		cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
-		module->input=cv_ptr->image;
+		module->getFrame(cv_ptr->image);
 		return 0;
 	}
 	catch (cv_bridge::Exception& e)

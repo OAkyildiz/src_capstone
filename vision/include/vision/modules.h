@@ -41,9 +41,12 @@ public:
 	Mat input;
 	Mat output;
 
-
+	void getFrame(Mat img_in);
 protected:
-	std::string window_name;
+	const std::string window_name;
+	static void onTrackbar(int val, void* ptr);
+
+	//virtual static void onTrackbar( int, void* );
 
 //private:
 
@@ -57,6 +60,8 @@ public:
 	virtual ~LightModule(){}
 
 	void doVision();
+	void present();
+
 
 	void setThreshold(short int threshold) {
 		this->threshold = threshold;
@@ -69,10 +74,13 @@ public:
 private:
 	/* parameters*/
 	short int threshold;
+	int slider;
 
-	/* members */
 	double max;
 	int r;
+
+	/* members */
+
 	Scalar color;
 
 	Mat red_ch;
@@ -83,9 +91,9 @@ private:
 
 	Point min_pt;
 	Point max_pt;
-	void cvtGray(Size size,double sigma);
+	void cvtGray(Size size, double sigma, bool blur);
 	void seperateChannels(Mat in, Mat out);
-	void present();
+	static void onTrackbar(int val, void* ptr);
 };
 
 class ObjectModule: public VisionModule{
@@ -98,8 +106,8 @@ public:
 
 private:
 	/* parameters */
-
 	/* members */
+	void onTrackbar(int val, void* ptr){}
 
 };
 }
