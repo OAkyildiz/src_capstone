@@ -34,6 +34,9 @@ public:
 	const ros::NodeHandle* get_nh() const {
 		return nh_;
 	}
+	const ros::NodeHandle* get_pnh() const {
+		return pnh_;
+	}
 protected:
 	ros::NodeHandle* pnh_;
 

@@ -74,7 +74,7 @@ void VisionNode::operation() {
 
 	// operations here
 	//module->doVision();
-	//module->present();
+	module->show();
 }
 
 /* Operations */
@@ -84,7 +84,7 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 		module->doVision();
 		int e2 = getTickCount();
 
-		ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
+		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 
 	}
 

@@ -10,12 +10,12 @@
 #ifndef SRC_VISION_DEBUGUI_H_
 #define SRC_VISION_DEBUGUI_H_
 
-template<typename Target, typename Data>
+template<typename Target>
 namespace debugUI {
 
 class Element{
 public:
-	Element(std::string title,std::string window,Target *target,Data value,void(*)(int));
+	Element(std::string title,std::string window,Target *target,int value,void(*)(int));
 	virtual ~Element(){}
 protected:
 	Target* target_obj;
@@ -30,17 +30,17 @@ public:
 
 private:
 
-	static void onTrackbar(int val, void* ptr);
+	//static void onTrackbar(int val, void* ptr);
 
 
 };
 
 class RadioButton: public Element{
 public:
-	RadioButton();
+	RadioButton(std::string title,std::string window,Target *target,int *param,int max, void(*)(int));
 	virtual ~RadioButton(){}
 private:
-	static void onToggle(int val, void* ptr);
+	//static void onToggle(int val, void* ptr);
 
 };
 } /* namespace debugUI */

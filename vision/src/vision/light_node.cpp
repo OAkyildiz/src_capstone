@@ -21,7 +21,7 @@ int main( int argc, char** argv ) {
 
 
  if(node->init("light_detection")){
-	 node->nh_->param("threshold",THRESHOLD,THRESHOLD);
+	 node->get_pnh()->param("threshold",THRESHOLD,10);
 	 light_detector->setThreshold(THRESHOLD);
 	 int t = light_detector->getThreshold();
 	 ROS_INFO("threshold: %d \n", t);
@@ -31,4 +31,4 @@ int main( int argc, char** argv ) {
  else
 	 return 1;
 }
-
+//

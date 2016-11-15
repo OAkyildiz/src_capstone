@@ -13,10 +13,11 @@
 double RATE = 60;
 
 Node::Node(int argc, char** argv):
-			  init_argc(argc),
-			  init_argv(argv),
-			  nh_(0),
-			  pnh_(0)
+				nh_(0),
+				pnh_(0),
+				init_argc(argc),
+			  init_argv(argv)
+
 {}
 
 Node::~Node() {
@@ -24,7 +25,8 @@ Node::~Node() {
 		ros::shutdown(); // explicitly needed since we use ros::start();
 		ros::waitForShutdown();
 	}
-	delete nh_,pnh_;
+	delete nh_;
+	delete pnh_;
 	wait();
 }
 
@@ -56,7 +58,7 @@ bool Node::setup() {
 		nh_ = new ros::NodeHandle();
 		pnh_ = new ros::NodeHandle("~");
 
-		pnh_->param<double>("rate", RATE, 20);
+		pnh_->param<double>("rate", RATE, 30);
 		setupParams();
 		setupCustom();
 		/*subs and pubs*/
@@ -81,4 +83,3 @@ void Node::run() {
 	}
 
 }
-
