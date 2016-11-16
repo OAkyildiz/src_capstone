@@ -11,6 +11,7 @@
 
 bool IS_STEREO = true;
 bool IS_WEBCAM = false;
+bool safe = false;
 
 std::string CAMERA_NAMESPACE = "/multisense/camera";
 std::string IMAGE_TYPE;
@@ -48,10 +49,9 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	if(IS_WEBCAM){
 		IS_STEREO = false;	// for now, we override stereo
 							// to false if webcam is used.
-		CAMERA_NAMESPACE = "/usb_cam/"; //TODO: change how this is handled.
-		IMAGE_TYPE = "mono_image";
-		mono_camera_sub == it_-> subscribe(CAMERA_NAMESPACE + "/" + IMAGE_TYPE, 100, &VisionNode::visionCallback, this);
-		mono_info_sub == nh_-> subscribe(CAMERA_NAMESPACE + "/" + info, 100, &VisionNode::camereInfoCallback, this);
+		CAMERA_NAMESPACE = "/usb_cam"; //TODO: change how this is handled.
+		mono_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/" + IMAGE_TYPE, 100, &VisionNode::visionCallback, this);
+		mono_info_sub = nh_-> subscribe(CAMERA_NAMESPACE + "/" + info, 100, &VisionNode::camereInfoCallback, this);
 
 	}
 	else{
@@ -74,7 +74,8 @@ void VisionNode::operation() {
 
 	// operations here
 	//module->doVision();
-	module->show();
+	if(safe)
+		module->show();
 }
 
 /* Operations */
@@ -83,7 +84,7 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 		int e1 = getTickCount();
 		module->doVision();
 		int e2 = getTickCount();
-
+		safe = true;
 		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 
 	}

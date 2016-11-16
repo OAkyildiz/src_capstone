@@ -7,9 +7,5 @@
 
 <!-- launch usb_cam for a bare test -->
 <include if="$(arg webcam)" file="$(find usb_cam)/launch/usb_cam-test.launch"/>
-<node if="$(arg webcam)" name="to_mono_node1" pkg="image_proc" type="image_proc" ns="usb_cam" />
 
-<node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
-    <remap from="image" to="$(arg topic)" />
-    <param name="autosize" value="true" />
-</node></launch>
+</launch>

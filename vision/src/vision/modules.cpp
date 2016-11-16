@@ -125,6 +125,9 @@ void LightModule::doVision(){
 	cvtGray();
 	getHSVLayers(input);
 	seperateChannels(input,hsv);
+
+	circle(*output, getCentroid(red_mask), 10,  Scalar(179,200,200), 3, 8, 0);
+
 	//print();
 }
 
@@ -168,6 +171,8 @@ void LightModule::colorFromMaxIntensity() {
 
 		}
 }
+
+
 void LightModule::seperateChannels(Mat in, Mat out){
 	// create local Mats
 
@@ -185,12 +190,16 @@ void LightModule::seperateChannels(Mat in, Mat out){
 	//green
 	inRange(hsv, HSV_GREEN_LOW,HSV_GREEN_HIGH, green_mask);
 
+
 	//finalize
 	//bitwise_or(red_mask,blue_mask, mask_med);
 	//bitwise_or(mask_med, green_mask, mask);
 	//bitwise_and(hsv_img,mask,out);
-
-
+}
+Point LightModule::getCentroid(Mat in){
+	Moments m = moments((in>=50),true);
+	Point2d p(m.m10/m.m00, m.m01/m.m00);
+	return p;
 }
 
 /*image helpers*/

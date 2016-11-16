@@ -118,6 +118,7 @@ private:
 	/*vision methods*/
 	void colorFromMaxIntensity();
 	void seperateChannels(Mat in, Mat out);
+	Point getCentroid(Mat in);
 
 	/*image helpers*/
 	void cvtGray();

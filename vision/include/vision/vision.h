@@ -24,12 +24,12 @@
 //TODO: separate modules.h, independent from cv_bridge
 extern bool IS_STEREO;
 extern bool IS_WEBCAM;
+extern bool safe;
 //NodeType NODE_TYPE = 0;
 //std::string NODE_TYPE;
 
 extern std::string CAMERA_NAMESPACE;
 extern std::string IMAGE_TYPE;
-
 
 
 
