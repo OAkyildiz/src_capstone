@@ -16,7 +16,13 @@ extern int THRESHOLD;
 
 using namespace cv;
 namespace vision{
+enum Detection{
+	NOLED=0,
+	RED=1,
+	GREEN=2,
+	BLUE=3
 
+};
 const Scalar HSV_RED_LOW = Scalar(0,100,100);
 const Scalar HSV_RED_HIGH = Scalar(3,255,255);
 
@@ -96,12 +102,13 @@ private:
 	int r;
 
 	/* members */
-
+	Detection sel;
 	Scalar color;
 
 	Mat red_mask;
 	Mat green_mask;
 	Mat blue_mask;
+	Mat* active_mask;
 
 	Mat	hue;
 	Mat	saturation;
@@ -116,9 +123,12 @@ private:
 	Point max_pt;
 
 	/*vision methods*/
+	void LEDDetection();
 	void colorFromMaxIntensity();
+
 	void seperateChannels(Mat in, Mat out);
 	Point getCentroid(Mat in);
+	void getRectangle(Mat in);
 
 	/*image helpers*/
 	void cvtGray();

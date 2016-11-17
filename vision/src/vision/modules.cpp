@@ -16,7 +16,7 @@ using namespace cv;
 /////////////
 /* VisionMoudel: Base cass*/
 VisionModule::VisionModule(std::string name):
-		framelist(0)
+				framelist(0)
 {
 	namedWindow(window_name, 1);
 	startWindowThread();
@@ -42,19 +42,19 @@ void VisionModule::toggleOutput(){
 	vector<Mat*>::iterator it,end;
 	int next;
 	//end = framelist.end();
-    it=find(framelist.begin(),framelist.end(),output);
-	 if(it != framelist.end()){
-		 auto int pos = it - framelist.begin()+1;
-		 ROS_INFO("current: %d", int(pos));
-		 if(pos==framelist.size()){
-			 next=0;
-			 setOutput(framelist[next]);
-		 }
-		 else
-			 next=pos;
-			 setOutput(framelist[next]);
-		 ROS_INFO("switching output to %d of %d",next+1,int(framelist.size()));
-	 }
+	it=find(framelist.begin(),framelist.end(),output);
+	if(it != framelist.end()){
+		auto int pos = it - framelist.begin()+1;
+		ROS_INFO("current: %d", int(pos));
+		if(pos==framelist.size()){
+			next=0;
+			setOutput(framelist[next]);
+		}
+		else
+			next=pos;
+		setOutput(framelist[next]);
+		ROS_INFO("switching output to %d of %d",next+1,int(framelist.size()));
+	}
 
 
 
@@ -67,38 +67,38 @@ void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 	Scalar rgb, hsv;
 	Point pix;
 	Vec3b pixel;
-	    switch(event){
-	    case CV_EVENT_RBUTTONDOWN:
-	    	    	mod->toggleOutput();
-	    	    	break;
-	    case CV_EVENT_LBUTTONDOWN:
-	        ROS_INFO("**Mouse clicked**");
-	        break;
-	    case CV_EVENT_LBUTTONUP:
-	    	pix = Point(x,y);
-        	pixel = mod->input.at<Vec3b>(pix);
-        	rgb = Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
+	switch(event){
+	case CV_EVENT_RBUTTONDOWN:
+		mod->toggleOutput();
+		break;
+	case CV_EVENT_LBUTTONDOWN:
+		ROS_INFO("**Mouse clicked**");
+		break;
+	case CV_EVENT_LBUTTONUP:
+		pix = Point(x,y);
+		pixel = mod->input.at<Vec3b>(pix);
+		rgb = Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
 
-        	cvtColor(mod->input, hsv_im, CV_BGR2HSV);
-        	pixel = hsv_im.at<Vec3b>(pix);
-        	hsv = Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
+		cvtColor(mod->input, hsv_im, CV_BGR2HSV);
+		pixel = hsv_im.at<Vec3b>(pix);
+		hsv = Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
 
-        	ROS_INFO("At (%d,%d): RGB %.0f,%.0f,%.0f", pix.x,pix.y,rgb[0], rgb[1], rgb[2]);
-        	ROS_INFO(" HSV: %.0f,%.0f,%.0f \n", hsv[0], hsv[1], hsv[2]);
-        	break;
+		ROS_INFO("At (%d,%d): RGB %.0f,%.0f,%.0f", pix.x,pix.y,rgb[0], rgb[1], rgb[2]);
+		ROS_INFO(" HSV: %.0f,%.0f,%.0f \n", hsv[0], hsv[1], hsv[2]);
+		break;
 
-	    }
 	}
+}
 ///////////
 /* LightModule: Light Detection Module*/
 
 LightModule::LightModule(std::string name, short int t):
-					VisionModule(name),
-					threshold(t),slider(t),
-					blursize(3), slider2(blursize),
-					button(1),
-					max(0), r(0),
-					color(0,0,0)
+							VisionModule(name),
+							threshold(t),slider(t),
+							blursize(3), slider2(blursize),
+							button(1),
+							max(0), r(0), sel(NOLED),
+							color(0,0,0)
 {
 	framelist.push_back(&grayscale);
 
@@ -125,17 +125,16 @@ void LightModule::doVision(){
 	cvtGray();
 	getHSVLayers(input);
 	seperateChannels(input,hsv);
+	LEDDetection();
 
-	circle(*output, getCentroid(red_mask), 10,  Scalar(179,200,200), 3, 8, 0);
 
-	//print();
 }
 
 void LightModule::show(){
 	imshow(window_name, *output);
 }
 void LightModule::print(){
-    //waitKey(5);
+	//waitKey(5);
 
 	// debug
 	// color
@@ -146,33 +145,81 @@ void LightModule::print(){
 }
 
 /* color operations*/
-void LightModule::colorFromMaxIntensity() {
-	//cvtGray(blursize, 3);
-		//cv::threshold(grayscale, grayscale,slider,0,THRESH_TOZERO_INV);
-		//seperateChannels(input,output);
+void LightModule::LEDDetection(){
+	int count;
+	switch (sel) {
+	default:
+	case NOLED:
+		sel=NOLED;
 
-		double min;
-		minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
-
-		if (max > 130){
-			// dynamic radius
-			r = max / 10 + 2;
-			Vec3b pixel = input.at<Vec3b>(max_pt);
-			color = Scalar(pixel.val[0]-r, pixel.val[1]-r, pixel.val[2]-r);
-			// constant radius
-			// int r=10;
-
-
-			circle(grayscale, max_pt, r,  color, 3, 8, 0);
+	case RED:
+		count = countNonZero(red_mask);
+		if(count>35) {
+			ROS_INFO("Red pix count: %d", count);
+			circle(*output, getCentroid(red_mask), 3,  Scalar(179,200,200), 1, 8, 0);
+			getRectangle(red_mask);
+			sel=RED;
+			break;
 		}
-		else{
-			color = Scalar(0,0,0);
-			r = 0;
+		sel=NOLED;
+
+		//ROS_INFO("no red");;
+		//
+		//print();
+	case GREEN:
+		count = countNonZero(green_mask);
+		if(count>35) {
+			ROS_INFO("Green pix count: %d", count);
+			//ROS_INFO("pix count: %d", cr);
+			circle(*output, getCentroid(green_mask), 3,  Scalar(179,200,200), 1, 8, 0);
+			getRectangle(green_mask);
+			sel=GREEN;
+			break;
 
 		}
+		sel=NOLED;
+
+	case BLUE:
+		count = countNonZero(blue_mask);
+		if(count>35) {
+			ROS_INFO("Blue pix count: %d", count);
+			//ROS_INFO("pix count: %d", cr);
+			circle(*output, getCentroid(blue_mask), 3,  Scalar(179,200,200), 1, 8, 0);
+			getRectangle(blue_mask);
+			sel=BLUE;
+			break;
+
+		}
+		sel=NOLED;
+
+	}
 }
+void LightModule::colorFromMaxIntensity() {
+
+	//cvtGray(blursize, 3);
+	//cv::threshold(grayscale, grayscale,slider,0,THRESH_TOZERO_INV);
+	//seperateChannels(input,output);
+
+	double min;
+	minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
+
+	if (max > 130){
+		// dynamic radius
+		r = max / 10 + 2;
+		Vec3b pixel = input.at<Vec3b>(max_pt);
+		color = Scalar(pixel.val[0]-r, pixel.val[1]-r, pixel.val[2]-r);
+		// constant radius
+		// int r=10;
 
 
+		circle(grayscale, max_pt, 5,  color, 1, 8, 0);
+	}
+	else{
+		color = Scalar(0,0,0);
+		r = 0;
+
+	}
+}
 void LightModule::seperateChannels(Mat in, Mat out){
 	// create local Mats
 
@@ -201,7 +248,34 @@ Point LightModule::getCentroid(Mat in){
 	Point2d p(m.m10/m.m00, m.m01/m.m00);
 	return p;
 }
+void LightModule::getRectangle(Mat in){
+	/// Function header
 
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+
+	findContours( in, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+	// Approximate contours to polygons + get bounding rects and circles
+	vector<vector<Point> > contours_poly( contours.size() );
+	//vector<Rect> boundRect( contours.size() );
+	//vector<Point2f>center( contours.size() );
+	//vector<float>radius( contours.size() );
+
+	for( int i = 0; i < contours.size(); i++ ){
+		approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+		//boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+	}
+
+
+	/// Draw polygonal contour + bonding rects + circles
+	for( int i = 0; i< contours.size(); i++ )
+	{
+		drawContours( *output, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+		//rectangle( *output, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
+	}
+
+}
 /*image helpers*/
 void LightModule::cvtGray(){
 	cvtColor(input, grayscale, CV_BGR2GRAY);
@@ -250,7 +324,7 @@ void LightModule::onToggle(int state, void* ptr){
 //////////////
 /* ObjectMoudel: Object recognition module*/
 ObjectModule::ObjectModule(std::string name):
-					VisionModule(name)
+							VisionModule(name)
 {
 }
 
