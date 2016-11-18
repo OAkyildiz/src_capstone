@@ -16,11 +16,19 @@ extern int THRESHOLD;
 
 using namespace cv;
 namespace vision{
+
 enum Detection{
 	NOLED=0,
 	RED=1,
 	GREEN=2,
-	BLUE=3
+	BLUE=3,
+	DETECTED=4
+};
+
+struct LEDColor{
+	Mat* mask_ptr;
+	Scalar value;
+	std::string name;
 
 };
 const Scalar HSV_RED_LOW = Scalar(0,100,100);
@@ -41,11 +49,11 @@ public:
 	VisionModule(std::string name);
 	virtual ~VisionModule();
 
-//protected:
+	//protected:
 	virtual void doVision() = 0;
 	virtual void show() = 0;
-	virtual void print() = 0;
-
+	virtual void draw() = 0;
+	virtual void print()=0;
 	Mat input;
 	Mat* output;
 
@@ -64,7 +72,7 @@ protected:
 
 	//virtual static void onTrackbar( int, void* );
 
-//private:
+	//private:
 
 
 };
@@ -77,6 +85,7 @@ public:
 
 	void doVision();
 	void show();
+	void draw();
 	void print();
 
 	void setThreshold(short int threshold) {
@@ -87,7 +96,7 @@ public:
 		this->blursize = size;
 	}
 	void setBlur(short int state) {
-		this->blur = state;
+		//this->blur = state;
 	}
 	short int getThreshold() const {
 		return threshold;
@@ -95,15 +104,11 @@ public:
 
 private:
 	/* parameters*/
-	short int threshold, blursize, blur;
-	int slider,slider2, button;
-
-	double max;
-	int r;
+	short int threshold, blursize;
+	int slider,slider2;
 
 	/* members */
-	Detection sel;
-	Scalar color;
+
 
 	Mat red_mask;
 	Mat green_mask;
@@ -119,13 +124,20 @@ private:
 	Mat	hsv;
 	Mat grayscale;
 
-	Point min_pt;
-	Point max_pt;
+	/* outputs */
+	//TODO:: Structurize the output data
+	//vector<vector<Point> > *contours_poly;
+	Point centroid;
+	vector<vector<Point> > contours_poly;
+	Detection sel;
+	Scalar color;
+	std::string color_text;
 
 	/*vision methods*/
 	void LEDDetection();
 	void colorFromMaxIntensity();
 
+	int checkSingleLed(Mat in);
 	void seperateChannels(Mat in, Mat out);
 	Point getCentroid(Mat in);
 	void getRectangle(Mat in);
@@ -133,12 +145,9 @@ private:
 	/*image helpers*/
 	void cvtGray();
 	void blurInput();
-	void getRedMask();
-	void getGreenMask();
-	void getBlueMask();
-
 	Mat getSingleLayer(Mat in, int layer);
 	void getHSVLayers(Mat in);
+	Scalar setTargetColor(Mat in, Point p);
 	/* Interaction handlers*/
 	static void onTrackbar(int val, void* ptr);
 	static void onTrackbar2(int val, void* ptr);
@@ -153,8 +162,8 @@ public:
 
 	void doVision();
 	void show();
+	void draw();
 	void print();
-
 private:
 	/* parameters */
 	/* members */

@@ -45,7 +45,7 @@ void VisionModule::toggleOutput(){
 	it=find(framelist.begin(),framelist.end(),output);
 	if(it != framelist.end()){
 		auto int pos = it - framelist.begin()+1;
-		ROS_INFO("current: %d", int(pos));
+		//ROS_INFO("current: %d", int(pos));
 		if(pos==framelist.size()){
 			next=0;
 			setOutput(framelist[next]);
@@ -95,11 +95,15 @@ void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 LightModule::LightModule(std::string name, short int t):
 							VisionModule(name),
 							threshold(t),slider(t),
-							blursize(3), slider2(blursize),
-							button(1),
-							max(0), r(0), sel(NOLED),
-							color(0,0,0)
+							blursize(1), slider2(blursize),
+							sel(NOLED),
+							color(0,0,0),color_text("")
 {
+
+	active_mask=NULL;
+	contours_poly= vector<vector<Point> >(1);
+
+
 	framelist.push_back(&grayscale);
 
 	framelist.push_back(&hue);
@@ -132,66 +136,60 @@ void LightModule::doVision(){
 
 void LightModule::show(){
 	imshow(window_name, *output);
+	//if(waitKey(30) >= 0) exit(0);
+}
+void LightModule::draw(){
+	//waitKey(5);
+	circle(*output, centroid, 2,  color, 1, 8, 0);
+	drawContours( *output, contours_poly, 0, color, 1, 8, vector<Vec4i>(), 0, Point() );
+
+	//add(LED,*output,*output);
 }
 void LightModule::print(){
-	//waitKey(5);
+	ROS_INFO("%s at %d,%d", color_text.data(), centroid.x, centroid.y);
 
-	// debug
-	// color
-	ROS_INFO("val: %.0f  at (%d, %d)	",max, max_pt.x, max_pt.y);
-	ROS_INFO("r: %d    BGR:(%.0f, %.0f, %.0f) \n",r/2 , color[0], color[1], color[2] );
-	// exit on key
-	//if(waitKey(30) >= 0) break;
 }
-
 /* color operations*/
 void LightModule::LEDDetection(){
 	int count;
 	switch (sel) {
 	default:
 	case NOLED:
-		sel=NOLED;
+		sel=DETECTED;
+		if 	(checkSingleLed(red_mask)){
+			active_mask=&red_mask;
+			color_text="RED";
+				}
+		else if (checkSingleLed(green_mask)){
+			active_mask=&green_mask;
+			color_text="GREEN";
 
-	case RED:
-		count = countNonZero(red_mask);
-		if(count>35) {
-			ROS_INFO("Red pix count: %d", count);
-			circle(*output, getCentroid(red_mask), 3,  Scalar(179,200,200), 1, 8, 0);
-			getRectangle(red_mask);
-			sel=RED;
+				}
+		else if	(checkSingleLed(blue_mask)){
+			active_mask=&blue_mask;
+			color_text="BLUE";
+		}
+		else{
+			sel=NOLED;
 			break;
 		}
-		sel=NOLED;
+		print();
 
-		//ROS_INFO("no red");;
-		//
-		//print();
-	case GREEN:
-		count = countNonZero(green_mask);
-		if(count>35) {
-			ROS_INFO("Green pix count: %d", count);
-			//ROS_INFO("pix count: %d", cr);
-			circle(*output, getCentroid(green_mask), 3,  Scalar(179,200,200), 1, 8, 0);
-			getRectangle(green_mask);
-			sel=GREEN;
-			break;
+		break;
 
+
+	case DETECTED:
+
+		if(countNonZero(*active_mask))
+			draw();
+		else{
+				active_mask = NULL;
+				centroid = Point(0,0);
+				color = Scalar(0,0,0);
+				sel = NOLED;
 		}
-		sel=NOLED;
 
-	case BLUE:
-		count = countNonZero(blue_mask);
-		if(count>35) {
-			ROS_INFO("Blue pix count: %d", count);
-			//ROS_INFO("pix count: %d", cr);
-			circle(*output, getCentroid(blue_mask), 3,  Scalar(179,200,200), 1, 8, 0);
-			getRectangle(blue_mask);
-			sel=BLUE;
-			break;
-
-		}
-		sel=NOLED;
-
+		break;
 	}
 }
 void LightModule::colorFromMaxIntensity() {
@@ -199,8 +197,9 @@ void LightModule::colorFromMaxIntensity() {
 	//cvtGray(blursize, 3);
 	//cv::threshold(grayscale, grayscale,slider,0,THRESH_TOZERO_INV);
 	//seperateChannels(input,output);
-
-	double min;
+	int r;
+	double min,max;
+	Point min_pt, max_pt;
 	minMaxLoc(grayscale, &min, &max, &min_pt, &max_pt);
 
 	if (max > 130){
@@ -220,6 +219,19 @@ void LightModule::colorFromMaxIntensity() {
 
 	}
 }
+int LightModule::checkSingleLed(Mat in){
+	int count = countNonZero(in);
+	if(count>35) {
+		//ROS_INFO("Blue pix count: %d", count);
+		//ROS_INFO("pix count: %d", cr);
+		centroid = getCentroid(in);
+		getRectangle(in);
+	}
+	else count=0;
+	return count;
+
+}
+
 void LightModule::seperateChannels(Mat in, Mat out){
 	// create local Mats
 
@@ -251,29 +263,28 @@ Point LightModule::getCentroid(Mat in){
 void LightModule::getRectangle(Mat in){
 	/// Function header
 
+
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 
+	// Approximate contours to polygons + get bounding rects and circles
 	findContours( in, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
-	// Approximate contours to polygons + get bounding rects and circles
-	vector<vector<Point> > contours_poly( contours.size() );
 	//vector<Rect> boundRect( contours.size() );
 	//vector<Point2f>center( contours.size() );
 	//vector<float>radius( contours.size() );
 
-	for( int i = 0; i < contours.size(); i++ ){
-		approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+	approxPolyDP( Mat(contours[0]), contours_poly[0], 3, true );
 		//boundRect[i] = boundingRect( Mat(contours_poly[i]) );
-	}
+
+
 
 
 	/// Draw polygonal contour + bonding rects + circles
-	for( int i = 0; i< contours.size(); i++ )
-	{
-		drawContours( *output, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+
+
 		//rectangle( *output, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
-	}
+
 
 }
 /*image helpers*/
@@ -285,7 +296,6 @@ void LightModule::blurInput(){
 	int s=blursize*2+1;
 	GaussianBlur(input, input, Size(s,s),3, 3);
 }
-
 Mat LightModule::getSingleLayer(Mat in, int layer){
 	vector<Mat> out;
 	split(in,out);
@@ -299,7 +309,10 @@ void LightModule::getHSVLayers(Mat in){
 	saturation = out[1];
 	value = out[2];
 }
-
+Scalar LightModule::setTargetColor(Mat in, Point p){
+	Vec3b pixel = input.at<Vec3b>(p);
+	return Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
+}
 /* Interaction handlers*/
 void LightModule::onTrackbar(int val, void* ptr){
 	LightModule* mod = (LightModule*)(ptr);
@@ -330,4 +343,5 @@ ObjectModule::ObjectModule(std::string name):
 
 void ObjectModule::doVision(){}
 void ObjectModule::show(){}
+void ObjectModule::draw(){}
 void ObjectModule::print(){}
