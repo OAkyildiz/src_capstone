@@ -21,6 +21,7 @@
 #include <sensor_msgs/Image.h>
 
 
+
 //TODO: separate modules.h, independent from cv_bridge
 extern bool IS_STEREO;
 extern bool IS_WEBCAM;
@@ -34,6 +35,9 @@ extern std::string IMAGE_TYPE;
 
 
 namespace vision {
+#define STEREO_LEFT 0
+#define STEREO_RIGHT 1
+
 //enum NodeType {
 //	LIGHT =0, LIGHT_DETECTION =0, TASK1= 0,
 //	OBJECT = 1, DOOR = 1, BUTTON = 1, TASK2=1
@@ -81,7 +85,7 @@ private:
 	bool publish();
 	bool subscribe();
 
-	int convertImage(const sensor_msgs::ImageConstPtr image);
+	int convertImage(const sensor_msgs::ImageConstPtr image, int sel);
 
 };
 

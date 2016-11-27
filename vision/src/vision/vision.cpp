@@ -80,7 +80,8 @@ void VisionNode::operation() {
 
 /* Operations */
 void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
-	if( convertImage(image) == 0){
+	//TODO: pass the setter method and object pointer to the helper method instead.
+	if( convertImage(image, STEREO_LEFT) == 0){
 		int e1 = getTickCount();
 		module->doVision();
 		int e2 = getTickCount();
@@ -88,24 +89,28 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 
 	}
+	else safe=false;
 
 
 }
 void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
-	//convertImage(image);
+	convertImage(image, STEREO_RIGHT);
 
 }
 
 void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstPtr& cam_info) {
 }
 
-int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image) {
+int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image, int sel) {
 
 	cv_bridge::CvImagePtr cv_ptr;
 	try
 	{
 		cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
-		module->getFrame(cv_ptr->image);
+		if ( sel == STEREO_LEFT )
+			module->loadFrame(cv_ptr->image);
+		else if (sel == STEREO_RIGHT )
+			module->loadFrame_Stereo(cv_ptr->image);
 		return 0;
 	}
 	catch (cv_bridge::Exception& e)

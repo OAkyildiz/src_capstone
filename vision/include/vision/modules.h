@@ -55,11 +55,13 @@ public:
 	virtual void draw() = 0;
 	virtual void print()=0;
 	Mat input;
+	Mat input_R;
 	Mat* output;
 
 	vector<Mat*> framelist;
 
-	void getFrame(Mat img_in);
+	void loadFrame(Mat img_in);
+	void loadFrame_Stereo(Mat img_in);
 	void setOutput(Mat *plug);
 	void toggleOutput();
 
@@ -84,6 +86,7 @@ public:
 	virtual ~LightModule(){}
 
 	void doVision();
+	void doDisparity(int color_index);
 	void show();
 	void draw();
 	void print();
@@ -115,9 +118,9 @@ private:
 	Mat blue_mask;
 	Mat* active_mask;
 
-	Mat	hue;
-	Mat	saturation;
-	Mat	value;
+//	Mat	hue;
+//	Mat	saturation;
+//	Mat	value;
 
 	Mat	extra1;
 
@@ -138,7 +141,7 @@ private:
 	void colorFromMaxIntensity();
 
 	int checkSingleLed(Mat in);
-	void seperateChannels(Mat in, Mat out);
+	vector<Mat> seperateChannels(Mat in);
 	Point getCentroid(Mat in);
 	void getRectangle(Mat in);
 
@@ -146,7 +149,7 @@ private:
 	void cvtGray();
 	void blurInput();
 	Mat getSingleLayer(Mat in, int layer);
-	void getHSVLayers(Mat in);
+	//void getHSVChannels(Mat in);
 	Scalar setTargetColor(Mat in, Point p);
 	/* Interaction handlers*/
 	static void onTrackbar(int val, void* ptr);

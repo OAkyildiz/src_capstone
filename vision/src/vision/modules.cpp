@@ -31,9 +31,14 @@ VisionModule::~VisionModule(){
 	destroyWindow(window_name);
 }
 
-void VisionModule::getFrame(Mat img_in) {
+void VisionModule::loadFrame(Mat img_in) {
 
 	input = img_in;
+}
+
+void VisionModule::loadFrame_Stereo(Mat img_in) {
+
+	input_R = img_in;
 }
 void VisionModule::setOutput(Mat *plug) {
 	output=plug;
@@ -104,11 +109,11 @@ LightModule::LightModule(std::string name, short int t):
 	contours_poly= vector<vector<Point> >(1);
 
 
-	framelist.push_back(&grayscale);
+//	framelist.push_back(&grayscale);
 
-	framelist.push_back(&hue);
-	framelist.push_back(&saturation);
-	framelist.push_back(&value);
+//	framelist.push_back(&hue);
+//	framelist.push_back(&saturation);
+//	framelist.push_back(&value);
 
 	framelist.push_back(&red_mask);
 	framelist.push_back(&blue_mask);
@@ -126,11 +131,22 @@ LightModule::LightModule(std::string name, short int t):
 void LightModule::doVision(){
 	//inRange(input, cv::Scalar(0, 0, 0), cv::Scalar(180, 180, 180), colored);
 	if (blursize) blurInput();
-	cvtGray();
-	getHSVLayers(input);
-	seperateChannels(input,hsv);
+	cvtColor(input, hsv, CV_BGR2HSV);
+
+	vector<Mat> masks=seperateChannels(hsv);
+	red_mask = masks[0];
+	green_mask = masks[1];
+	blue_mask = masks[2];
 	LEDDetection();
 
+}
+
+void LightModule::doDisparity(int color_index){
+	Mat hsv_R;
+	cvtColor(input_R, hsv_R, CV_BGR2HSV);
+	vector<Mat> masks = seperateChannels(hsv_R);
+	Point centr_R= getCentroid(masks[color_index]);
+	ROS_INFO("[RIGHT]	 at %d,%d", centr_R.x, centr_R.y);
 
 }
 
@@ -146,12 +162,12 @@ void LightModule::draw(){
 	//add(LED,*output,*output);
 }
 void LightModule::print(){
-	ROS_INFO("%s at %d,%d", color_text.data(), centroid.x, centroid.y);
+	ROS_INFO("[LEFT] %s at %d,%d", color_text.data(), centroid.x, centroid.y);
 
 }
 /* color operations*/
 void LightModule::LEDDetection(){
-	int count;
+	int index;
 	switch (sel) {
 	default:
 	case NOLED:
@@ -159,22 +175,27 @@ void LightModule::LEDDetection(){
 		if 	(checkSingleLed(red_mask)){
 			active_mask=&red_mask;
 			color_text="RED";
+			index=0;
 				}
 		else if (checkSingleLed(green_mask)){
 			active_mask=&green_mask;
 			color_text="GREEN";
+			index=1;
 
 				}
 		else if	(checkSingleLed(blue_mask)){
 			active_mask=&blue_mask;
 			color_text="BLUE";
+			index=2;
+
 		}
 		else{
 			sel=NOLED;
 			break;
 		}
+		//seper
 		print();
-
+		doDisparity(index);
 		break;
 
 
@@ -232,24 +253,25 @@ int LightModule::checkSingleLed(Mat in){
 
 }
 
-void LightModule::seperateChannels(Mat in, Mat out){
+vector<Mat> LightModule::seperateChannels(Mat in){
 	// create local Mats
 
 	Mat red1,red2;
 	Mat mask_med,mask;
+	vector<Mat> out(3);
 
 	//red
-	inRange(hsv, HSV_RED_LOW,HSV_RED_HIGH, red1);
-	inRange(hsv, HSV_RED_2_LOW,HSV_RED_2_HIGH, red2);
-	bitwise_or(red1,red2,red_mask);
+	inRange(in, HSV_RED_LOW,HSV_RED_HIGH, red1);
+	inRange(in, HSV_RED_2_LOW,HSV_RED_2_HIGH, red2);
+	bitwise_or(red1,red2,out[0]);
 
 	//blue
-	inRange(hsv,HSV_BLUE_LOW, HSV_BLUE_HIGH, blue_mask);
+	inRange(in,HSV_BLUE_LOW, HSV_BLUE_HIGH,out[1]);
 
 	//green
-	inRange(hsv, HSV_GREEN_LOW,HSV_GREEN_HIGH, green_mask);
+	inRange(in, HSV_GREEN_LOW,HSV_GREEN_HIGH, out[2]);
 
-
+	return out;
 	//finalize
 	//bitwise_or(red_mask,blue_mask, mask_med);
 	//bitwise_or(mask_med, green_mask, mask);
@@ -301,14 +323,16 @@ Mat LightModule::getSingleLayer(Mat in, int layer){
 	split(in,out);
 	return out[layer];
 }
-void LightModule::getHSVLayers(Mat in){
-	vector<Mat> out;
-	cvtColor(in, hsv, CV_BGR2HSV);
-	split(hsv,out);
-	hue = out[0];
-	saturation = out[1];
-	value = out[2];
-}
+
+
+//void LightModule::getHSVChannels(Mat in){
+//	vector<Mat> channnels;
+//	cvtColor(in, hsv, CV_BGR2HSV);
+//	split(hsv,channels);
+//	hue = channels[0];
+//	saturation = channels[1];
+//	value = channels[2];
+//}
 Scalar LightModule::setTargetColor(Mat in, Point p){
 	Vec3b pixel = input.at<Vec3b>(p);
 	return Scalar(pixel.val[0], pixel.val[1], pixel.val[2]);
