@@ -23,7 +23,8 @@ using namespace vision;
 VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
 			Node(argc,argv),
 			module(module),
-			it_(0)
+			it_(0),
+			tf_()
 {
 	}
 
@@ -64,8 +65,10 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 
 		}
 	}
-
 }
+
+
+
 /*READ*/
 // For the following two functions, running with each callback or with node rate is possible.
 // Decide if either presenting or image ops are worth operating at node's rate.
