@@ -14,9 +14,12 @@ using namespace cv;
 
 
 /////////////
-/* VisionMoudel: Base cass*/
+/* VisionMoudel: Base class*/
 VisionModule::VisionModule(std::string name):
-				framelist(0)
+				framelist(0),
+				cam(),
+				sel(NOLED)
+
 {
 	namedWindow(window_name, 1);
 	startWindowThread();
@@ -40,6 +43,17 @@ void VisionModule::loadFrame_Stereo(Mat img_in) {
 
 	input_R = img_in;
 }
+
+void VisionModule::loadCamera(Camera device){
+	cam = device;
+	cam.read = true;
+}
+
+bool VisionModule::camIsSet(){
+	return cam.read;
+}
+
+
 void VisionModule::setOutput(Mat *plug) {
 	output=plug;
 }
@@ -60,11 +74,9 @@ void VisionModule::toggleOutput(){
 		setOutput(framelist[next]);
 		ROS_INFO("switching output to %d of %d",next+1,int(framelist.size()));
 	}
-
-
-
-
 }
+
+
 void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 {
 	VisionModule* mod = (VisionModule*)(ptr);
@@ -101,13 +113,11 @@ LightModule::LightModule(std::string name, short int t):
 							VisionModule(name),
 							threshold(t),slider(t),
 							blursize(1), slider2(blursize),
-							sel(NOLED),
 							color(0,0,0),color_text("")
 {
 
 	active_mask=NULL;
 	contours_poly= vector<vector<Point> >(1);
-
 
 //	framelist.push_back(&grayscale);
 
@@ -119,13 +129,11 @@ LightModule::LightModule(std::string name, short int t):
 	framelist.push_back(&blue_mask);
 	framelist.push_back(&green_mask);
 
-
 	createTrackbar( "threshold", window_name, &slider,255,LightModule::onTrackbar, this);
 	createTrackbar( "blur size", window_name, &slider2,50,LightModule::onTrackbar2, this);
 
 	//TODO: Build opencv with QT support
 	//createButton("blur", LightModule::onToggle, &button, CV_RADIOBOX, button);
-
 }
 
 void LightModule::doVision(){
@@ -193,9 +201,14 @@ void LightModule::LEDDetection(){
 			sel=NOLED;
 			break;
 		}
+		break;
+
+	case OUTPUT:
 		//seper
 		print();
 		doDisparity(index);
+		draw();
+
 		break;
 
 
@@ -215,9 +228,6 @@ void LightModule::LEDDetection(){
 }
 void LightModule::colorFromMaxIntensity() {
 
-	//cvtGray(blursize, 3);
-	//cv::threshold(grayscale, grayscale,slider,0,THRESH_TOZERO_INV);
-	//seperateChannels(input,output);
 	int r;
 	double min,max;
 	Point min_pt, max_pt;
@@ -230,8 +240,6 @@ void LightModule::colorFromMaxIntensity() {
 		color = Scalar(pixel.val[0]-r, pixel.val[1]-r, pixel.val[2]-r);
 		// constant radius
 		// int r=10;
-
-
 		circle(grayscale, max_pt, 5,  color, 1, 8, 0);
 	}
 	else{
@@ -243,8 +251,7 @@ void LightModule::colorFromMaxIntensity() {
 int LightModule::checkSingleLed(Mat in){
 	int count = countNonZero(in);
 	if(count>35) {
-		//ROS_INFO("Blue pix count: %d", count);
-		//ROS_INFO("pix count: %d", cr);
+		//ROS_INFO("Blue pix count: %d", count);//ROS_INFO("pix count: %d", cr);
 		centroid = getCentroid(in);
 		getRectangle(in);
 	}
@@ -272,10 +279,7 @@ vector<Mat> LightModule::seperateChannels(Mat in){
 	inRange(in, HSV_GREEN_LOW,HSV_GREEN_HIGH, out[2]);
 
 	return out;
-	//finalize
-	//bitwise_or(red_mask,blue_mask, mask_med);
-	//bitwise_or(mask_med, green_mask, mask);
-	//bitwise_and(hsv_img,mask,out);
+
 }
 Point LightModule::getCentroid(Mat in){
 	Moments m = moments((in>=50),true);

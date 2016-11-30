@@ -22,7 +22,21 @@ enum Detection{
 	RED=1,
 	GREEN=2,
 	BLUE=3,
-	DETECTED=4
+	OUTPUT=4,
+	DETECTED=5
+
+};
+
+
+struct Camera{
+	//Camera(bool, uint32_t, uint32_t, double, double, double, double, double, double, double);
+	bool read;
+	uint32_t height, width;
+	double fx,fy;
+	double cx_l,cx_r,cy;
+	double Tx_l,Tx_r;
+	string frame_id;
+
 };
 
 struct LEDColor{
@@ -49,6 +63,9 @@ public:
 	VisionModule(std::string name);
 	virtual ~VisionModule();
 
+//	void setParent(VisionNode* node){
+//		this->parent = node;
+//	}
 	//protected:
 	virtual void doVision() = 0;
 	virtual void show() = 0;
@@ -57,16 +74,24 @@ public:
 	Mat input;
 	Mat input_R;
 	Mat* output;
+	Detection sel;
 
 	vector<Mat*> framelist;
-
 	void loadFrame(Mat img_in);
 	void loadFrame_Stereo(Mat img_in);
+	void loadCamera(Camera device);
+	bool camIsSet();
+
 	void setOutput(Mat *plug);
 	void toggleOutput();
 
 protected:
+	//VisionNode* parent;
+
+	Camera cam;
 	const std::string window_name;
+
+
 	static void onTrackbar(int val, void* ptr);
 	static void onTrackbar2(int val, void* ptr);
 	static void onToggle(int state, void* ptr);
@@ -112,7 +137,6 @@ private:
 
 	/* members */
 
-
 	Mat red_mask;
 	Mat green_mask;
 	Mat blue_mask;
@@ -132,7 +156,6 @@ private:
 	//vector<vector<Point> > *contours_poly;
 	Point centroid;
 	vector<vector<Point> > contours_poly;
-	Detection sel;
 	Scalar color;
 	std::string color_text;
 
