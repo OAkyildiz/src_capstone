@@ -192,12 +192,12 @@ void LightModule::LEDDetection(){
 			color_text="RED";
 			type=RED_LED;
 			sel = OUTPUT;
-		}
+		
 		centroid_R = findVisualPair(type%3);
 		location = calculateLocation(centroid,centroid_R);
 		draw();
-
-		if(countNonZero(*active_mask))
+		}
+		else if(countNonZero(*active_mask))
 			draw();
 		else{
 			active_mask = NULL;
