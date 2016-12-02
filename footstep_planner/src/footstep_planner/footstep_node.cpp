@@ -1,25 +1,23 @@
+/*
+ * footstep_node.cpp
+ *
+ *  Created on: , 2016
+ *      Author: ,  
+ *		 Email: @wpi.edu
+ *
+ */
+
+#include "footstep_planner/footstep_node.h"
+
+int main( int argc, char** argv ) {
+
+ FootstepPlannerNode node = new FootstepPlannerNode(argc, argv);
 
 
-FootstepPlannerNode::FootstepPlannerNode(int argc, char** argv):
-Node(arfc,argv){
-}
 
-FootstepPlannerNode::setupParams(){
- /* Read in Ros Params */
-
-}
+ node->init("footstep_node");
+ node->run();
 
 
-FootstepPlannerNode::setupCustom(){
- /* Initialize subscribers, publishers and transform listener here*/
- /* transform listener tutorials: google "ros tf" */
-
-
-}
-
-
-FootstepPlannerNode::opertations(){
-
-/* Main algorithim goes here*/
-
+  return 0;
 }

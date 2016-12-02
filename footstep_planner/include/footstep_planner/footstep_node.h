@@ -23,6 +23,12 @@
 //	 FootstepDataListRosMessage
 //	 FootstepDataRosMessage
 
+struct Leg{
+	double lower;
+	double upper;
+	double total;
+	double hip_height;
+}
 
 class FootstepPlannerNode: public Node {
 public:
@@ -33,13 +39,13 @@ public:
 
 
 	/* Members */
-
-
+	
+	Leg valkyrie_leg;
 	/* Getters & Setters */
 	
 
 protected:
-
+	
 
 private:
 	/
@@ -56,6 +62,8 @@ private:
 	void setupCustom();
 	void operation();
 
+	void calculateStep();
+	void updateGoal();
 	/*hash map of values*/
 	//HashMap<std::string, double> params;
 	//static double RATE = 60;
