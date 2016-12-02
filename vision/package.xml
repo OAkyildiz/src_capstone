@@ -46,12 +46,14 @@
   <build_depend>opencv</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>node</build_depend>
- 
+  <build_depend>message_generation</build_depend>
+
   <run_depend>roscpp</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>opencv</run_depend>
   <run_depend>image_transport</run_depend>
   <run_depend>node</run_depend>
+  <run_depend>message_runtime</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -15,10 +15,16 @@
 #include "node/node.h"
 #include "vision/modules.h"
 
+#include "vision/DetectedObject.h"
+#include "tf/transform_listener.h"
+#include "tf/message_filter.h"
+#include "message_filters/subscriber.h"
+
 #include <image_transport/image_transport.h>
 #include <cv_bridge/rgb_colors.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
+
 
 
 //TODO: separate modules.h, independent from cv_bridge
@@ -34,6 +40,9 @@ extern std::string IMAGE_TYPE;
 
 
 namespace vision {
+#define STEREO_LEFT 0
+#define STEREO_RIGHT 1
+
 //enum NodeType {
 //	LIGHT =0, LIGHT_DETECTION =0, TASK1= 0,
 //	OBJECT = 1, DOOR = 1, BUTTON = 1, TASK2=1
@@ -49,6 +58,7 @@ public:
 private:
 
 	/* Members */
+
 	VisionModule* module;
 	image_transport::ImageTransport* it_;
 
@@ -56,6 +66,10 @@ private:
 	image_transport::Subscriber mono_camera_sub;
 	ros::Subscriber mono_info_sub;
 
+//	message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
+//	tf::TransformListener tf_;
+//	tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
+//	std::string target_frame_;
 
 	image_transport::Subscriber left_camera_sub;
 	image_transport::Subscriber right_camera_sub;
@@ -63,14 +77,18 @@ private:
 	ros::Subscriber left_info_sub;
 	ros::Subscriber right_info_sub;
 
-	ros::Publisher something_pub;
+	ros::Publisher object_pub;
 
 	//static bool IS_STEREO = true;
 
 
 	void setupParams();
 	void setupCustom();
+	void setupTransform();
 	void operation();
+
+	bool publish();
+	bool subscribe();
 
 	void visionCallback(const sensor_msgs::ImageConstPtr& image);
 	void disparityCallback(const sensor_msgs::ImageConstPtr& image);
@@ -78,10 +96,8 @@ private:
 	void camereInfoCallback(const sensor_msgs::CameraInfoConstPtr& cam_info);
 
 
-	bool publish();
-	bool subscribe();
 
-	int convertImage(const sensor_msgs::ImageConstPtr image);
+	int convertImage(const sensor_msgs::ImageConstPtr image, int sel);
 
 };
 
