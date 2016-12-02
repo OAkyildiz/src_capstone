@@ -19,10 +19,32 @@ namespace vision{
 
 enum Detection{
 	NOLED=0,
-	RED=1,
-	GREEN=2,
-	BLUE=3,
-	DETECTED=4
+	RED=10,
+	GREEN=20,
+	BLUE=30,
+	OUTPUT=40,
+	DETECTED=50
+
+};
+
+enum Type{
+	RED_LED = 0,
+	GREEN_LED = 1,
+	BLUE_LED = 2,
+	BUTTON = 3,
+	DOOR_OPEN = 4,
+	DOOR_CLOSED = 5
+};
+
+struct Camera{
+	//Camera(bool, uint32_t, uint32_t, double, double, double, double, double, double, double);
+	bool read;
+	uint32_t height, width;
+	double fx,fy;
+	double cx_l,cx_r,cy;
+	double Tx_l,Tx_r;
+	string frame_id;
+
 };
 
 struct LEDColor{
@@ -49,34 +71,63 @@ public:
 	VisionModule(std::string name);
 	virtual ~VisionModule();
 
+//	void setParent(VisionNode* node){
+//		this->parent = node;
+//	}
 	//protected:
 	virtual void doVision() = 0;
 	virtual void show() = 0;
 	virtual void draw() = 0;
-	virtual void print()=0;
+	virtual void print() = 0;
 	Mat input;
 	Mat input_R;
 	Mat* output;
+	Detection sel;
 
 	vector<Mat*> framelist;
-
 	void loadFrame(Mat img_in);
 	void loadFrame_Stereo(Mat img_in);
+	void loadCamera(Camera device);
+	bool camIsSet();
+
 	void setOutput(Mat *plug);
 	void toggleOutput();
 
+	const Camera& getCam() const {
+	     return cam;
+	       }
+
+	const Point3d& getLocation() const {
+	     return location;
+	       }
+
+	short int getType() const {
+	     return type;
+	       }
+
+
+
 protected:
+	//VisionNode* parent;
+	Camera cam;
 	const std::string window_name;
+	Point3d location;
+    Type type;
+
+	Point3d calculateLocation(Point L, Point R);
+
 	static void onTrackbar(int val, void* ptr);
 	static void onTrackbar2(int val, void* ptr);
 	static void onToggle(int state, void* ptr);
 	static void mouseHandler(int event, int x, int y, int flags, void* param);
 
-	//virtual static void onTrackbar( int, void* );
+	void autoCloseWindow(){
 
-	//private:
-
-
+		//FIX
+		if (getWindowProperty(window_name,4)==0){
+			exit(0);
+		}
+	}
 };
 
 class LightModule: public VisionModule{
@@ -86,7 +137,7 @@ public:
 	virtual ~LightModule(){}
 
 	void doVision();
-	void doDisparity(int color_index);
+	Point findVisualPair(int color_index);
 	void show();
 	void draw();
 	void print();
@@ -112,15 +163,14 @@ private:
 
 	/* members */
 
-
 	Mat red_mask;
 	Mat green_mask;
 	Mat blue_mask;
 	Mat* active_mask;
 
-//	Mat	hue;
-//	Mat	saturation;
-//	Mat	value;
+	Mat	hue;
+	Mat	saturation;
+	Mat	value;
 
 	Mat	extra1;
 
@@ -130,9 +180,8 @@ private:
 	/* outputs */
 	//TODO:: Structurize the output data
 	//vector<vector<Point> > *contours_poly;
-	Point centroid;
+	Point centroid, centroid_R;
 	vector<vector<Point> > contours_poly;
-	Detection sel;
 	Scalar color;
 	std::string color_text;
 
@@ -149,7 +198,7 @@ private:
 	void cvtGray();
 	void blurInput();
 	Mat getSingleLayer(Mat in, int layer);
-	//void getHSVChannels(Mat in);
+	void getHSVChannels(Mat in);
 	Scalar setTargetColor(Mat in, Point p);
 	/* Interaction handlers*/
 	static void onTrackbar(int val, void* ptr);

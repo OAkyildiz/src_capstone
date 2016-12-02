@@ -23,9 +23,9 @@ using namespace vision;
 VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
 			Node(argc,argv),
 			module(module),
-			it_(0),
-			tf_()
+			it_(0)
 {
+	//module->setParent(this);
 	}
 
 
@@ -45,6 +45,8 @@ void VisionNode::setupParams() {
 void VisionNode::setupCustom(){
 if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	/*subs and pubs*/
+
+	object_pub= nh_->advertise<vision::DetectedObject>("/objects", 30);
 	std::string info="camera_info";
 
 	if(IS_WEBCAM){
@@ -57,14 +59,16 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	}
 	else{
 		left_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/left/"+ IMAGE_TYPE, 100, &VisionNode::visionCallback, this);
-		left_info_sub = pnh_-> subscribe(CAMERA_NAMESPACE + "/left/"+ info, 100, &VisionNode::camereInfoCallback, this);
 
 		if(IS_STEREO){
 			right_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/right/"+ IMAGE_TYPE, 1000, &VisionNode::disparityCallback, this);
 			right_info_sub = nh_-> subscribe(CAMERA_NAMESPACE + "/right/"+ info, 100, &VisionNode::camereInfoCallback, this);
+		}
+		else
+				left_info_sub = pnh_-> subscribe(CAMERA_NAMESPACE + "/left/"+ info, 100, &VisionNode::camereInfoCallback, this);
+
 
 		}
-	}
 }
 
 
@@ -74,25 +78,43 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 // Decide if either presenting or image ops are worth operating at node's rate.
 // If so, put them on operation() accordingly with proper flags and null checks.
 void VisionNode::operation() {
-
 	// operations here
 	//module->doVision();
 	if(safe)
+		int e1 = getTickCount();
+		module->doVision();
+		int e2 = getTickCount();
+		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
+		publish();
 		module->show();
 }
+bool VisionNode::publish(){
+	if (module->sel==OUTPUT){
+		DetectedObject obj_msg;
+		obj_msg.frame_id = module->getCam().frame_id;
+		Point3d pt = module->getLocation();
+		obj_msg.point.x = pt.x;
+		obj_msg.point.y = pt.y;
+		obj_msg.point.z = pt.z;
+		obj_msg.type = module->getType();
 
+		object_pub.publish(obj_msg);
+
+		module->sel=DETECTED;
+		return true;
+	}
+	else
+		return false;
+}
 /* Operations */
 void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 	//TODO: pass the setter method and object pointer to the helper method instead.
 	if( convertImage(image, STEREO_LEFT) == 0){
-		int e1 = getTickCount();
-		module->doVision();
-		int e2 = getTickCount();
+
 		safe = true;
-		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 
 	}
-	else safe=false;
+	else safe = false;
 
 
 }
@@ -100,8 +122,17 @@ void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
 	convertImage(image, STEREO_RIGHT);
 
 }
-
+// Maybe assign fileds 1 by 1 in loadCamera
 void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstPtr& cam_info) {
+	string  frame_id=cam_info->header.frame_id;
+	boost::array<double, 12ul> P = cam_info->P;
+
+	if(!(module->camIsSet())){
+		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],0,P[2],P[6],0,P[3], frame_id };
+		module->loadCamera(cam);
+		ROS_INFO("loaded camera");
+
+	}
 }
 
 int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image, int sel) {

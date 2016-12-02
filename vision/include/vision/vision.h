@@ -15,8 +15,11 @@
 #include "node/node.h"
 #include "vision/modules.h"
 
+#include "vision/DetectedObject.h"
 #include "tf/transform_listener.h"
 #include "tf/message_filter.h"
+#include "message_filters/subscriber.h"
+
 #include <image_transport/image_transport.h>
 #include <cv_bridge/rgb_colors.h>
 #include <cv_bridge/cv_bridge.h>
@@ -55,6 +58,7 @@ public:
 private:
 
 	/* Members */
+
 	VisionModule* module;
 	image_transport::ImageTransport* it_;
 
@@ -62,11 +66,10 @@ private:
 	image_transport::Subscriber mono_camera_sub;
 	ros::Subscriber mono_info_sub;
 
-	//message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
-	tf::TransformListener tf_;
-	//tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
-	ros::NodeHandle n_;
-	std::string target_frame_;
+//	message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
+//	tf::TransformListener tf_;
+//	tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
+//	std::string target_frame_;
 
 	image_transport::Subscriber left_camera_sub;
 	image_transport::Subscriber right_camera_sub;
@@ -74,7 +77,7 @@ private:
 	ros::Subscriber left_info_sub;
 	ros::Subscriber right_info_sub;
 
-	ros::Publisher something_pub;
+	ros::Publisher object_pub;
 
 	//static bool IS_STEREO = true;
 
@@ -84,14 +87,15 @@ private:
 	void setupTransform();
 	void operation();
 
+	bool publish();
+	bool subscribe();
+
 	void visionCallback(const sensor_msgs::ImageConstPtr& image);
 	void disparityCallback(const sensor_msgs::ImageConstPtr& image);
 
 	void camereInfoCallback(const sensor_msgs::CameraInfoConstPtr& cam_info);
 
 
-	bool publish();
-	bool subscribe();
 
 	int convertImage(const sensor_msgs::ImageConstPtr image, int sel);
 
