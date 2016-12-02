@@ -15,10 +15,13 @@
 #include "node/node.h"
 #include "vision/modules.h"
 
+#include "tf/transform_listener.h"
+#include "tf/message_filter.h"
 #include <image_transport/image_transport.h>
 #include <cv_bridge/rgb_colors.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
+
 
 
 //TODO: separate modules.h, independent from cv_bridge
@@ -34,6 +37,9 @@ extern std::string IMAGE_TYPE;
 
 
 namespace vision {
+#define STEREO_LEFT 0
+#define STEREO_RIGHT 1
+
 //enum NodeType {
 //	LIGHT =0, LIGHT_DETECTION =0, TASK1= 0,
 //	OBJECT = 1, DOOR = 1, BUTTON = 1, TASK2=1
@@ -56,6 +62,11 @@ private:
 	image_transport::Subscriber mono_camera_sub;
 	ros::Subscriber mono_info_sub;
 
+	//message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
+	tf::TransformListener tf_;
+	//tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
+	ros::NodeHandle n_;
+	std::string target_frame_;
 
 	image_transport::Subscriber left_camera_sub;
 	image_transport::Subscriber right_camera_sub;
@@ -70,6 +81,7 @@ private:
 
 	void setupParams();
 	void setupCustom();
+	void setupTransform();
 	void operation();
 
 	void visionCallback(const sensor_msgs::ImageConstPtr& image);
@@ -81,7 +93,7 @@ private:
 	bool publish();
 	bool subscribe();
 
-	int convertImage(const sensor_msgs::ImageConstPtr image);
+	int convertImage(const sensor_msgs::ImageConstPtr image, int sel);
 
 };
 
