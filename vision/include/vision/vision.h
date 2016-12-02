@@ -58,7 +58,6 @@ public:
 private:
 
 	/* Members */
-	ros::NodeHandle n_;
 
 	VisionModule* module;
 	image_transport::ImageTransport* it_;

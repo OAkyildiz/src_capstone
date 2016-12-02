@@ -81,10 +81,24 @@ void VisionNode::operation() {
 	// operations here
 	//module->doVision();
 	if(safe)
+		int e1 = getTickCount();
+		module->doVision();
+		int e2 = getTickCount();
+		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
+		publish();
 		module->show();
 }
 bool VisionNode::publish(){
 	if (module->sel==OUTPUT){
+		DetectedObject obj_msg;
+		obj_msg.frame_id = module->getCam().frame_id;
+		Point3d pt = module->getLocation();
+		obj_msg.point.x = pt.x;
+		obj_msg.point.y = pt.y;
+		obj_msg.point.z = pt.z;
+		obj_msg.type = module->getType();
+
+		object_pub.publish(obj_msg);
 
 		module->sel=DETECTED;
 		return true;
@@ -96,14 +110,11 @@ bool VisionNode::publish(){
 void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 	//TODO: pass the setter method and object pointer to the helper method instead.
 	if( convertImage(image, STEREO_LEFT) == 0){
-		int e1 = getTickCount();
-		module->doVision();
-		int e2 = getTickCount();
+
 		safe = true;
-		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 
 	}
-	else safe=false;
+	else safe = false;
 
 
 }
@@ -117,8 +128,9 @@ void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstP
 	boost::array<double, 12ul> P = cam_info->P;
 
 	if(!(module->camIsSet())){
-		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],0,P[2],P[6],0,P[3] };
+		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],0,P[2],P[6],0,P[3], frame_id };
 		module->loadCamera(cam);
+		ROS_INFO("loaded camera");
 
 	}
 }
