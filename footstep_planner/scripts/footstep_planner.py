@@ -150,9 +150,12 @@ def planNextFootstep():
 				GO = 0
 
 
-	footStepListPublisher.publish(msg)
-	rospy.loginfo('walk forward...')
-	waitForFootsteps(len(msg.footstep_data_list))
+			footStepListPublisher.publish(msg)
+			rospy.loginfo('taking a step...')
+			waitForFootsteps(len(msg.footstep_data_list))
+			#updateGoal()	
+			
+		print("finished walking")
 
 	#return 
 

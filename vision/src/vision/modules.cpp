@@ -187,42 +187,15 @@ void LightModule::print(){
 /* color operations*/
 void LightModule::LEDDetection(){
 
-	switch (sel) {
-	default:
-	case NOLED:
-		sel=OUTPUT;
 		if 	(checkSingleLed(red_mask)){
 			active_mask=&red_mask;
 			color_text="RED";
 			type=RED_LED;
+			sel = OUTPUT;
 		}
-		else if (checkSingleLed(green_mask)){
-			active_mask=&green_mask;
-			color_text="GREEN";
-			type=GREEN_LED;
-		}
-		else if	(checkSingleLed(blue_mask)){
-			active_mask=&blue_mask;
-			color_text="BLUE";
-			type=BLUE_LED;
-		}
-		else{
-			sel=NOLED;
-			break;
-		}
-
-
-	case OUTPUT:
-		//ROS_INFO("out");
-		print();
 		centroid_R = findVisualPair(type%3);
 		location = calculateLocation(centroid,centroid_R);
 		draw();
-
-		break;
-
-
-	case DETECTED:
 
 		if(countNonZero(*active_mask))
 			draw();
@@ -234,11 +207,9 @@ void LightModule::LEDDetection(){
 			sel = NOLED;
 		}
 
-		break;
 	}
 	//ROS_INFO("%d",int(sel));
 
-}
 void LightModule::colorFromMaxIntensity() {
 
 	int r;
