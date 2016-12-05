@@ -37,11 +37,23 @@ private:
 	void objectCallback(const vision::DetectedObjectConstPtr& obj){
 
 		tf::StampedTransform transform;
-		geometry_msgs::PointStamped detected_point;
-		detected_point.header.frame_id=obj->frame_id;
-		detected_point.header.stamp=ros::Time(0);
-		detected_point.point=obj->point;
+		geometry_msgs::PointStamped* detected_point;
+		detected_point->header.frame_id=obj->frame_id;
+		detected_point->header.stamp=ros::Time(0);
+		detected_point->point=obj->point;
 		vision::Type type = obj->type;
+
+		geometry_msgs::PointStamped point_out;
+		try {
+			tf_.transformPoint("head", *detected_point, point_out);
+			printf("Detected obj (->head): (x:%f y:%f z:%f)\n",
+		             point_out.point.x,
+		             point_out.point.y,
+		             point_out.point.z);
+		}
+		catch (tf::TransformException &ex){
+			printf ("Failure %s\n", ex.what()); //Print exception which was caught
+		}
 
 		switch(type){
 		case vision::RED_LED:

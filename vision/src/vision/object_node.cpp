@@ -15,14 +15,11 @@ using namespace vision;
 
 int main( int argc, char** argv ) {
 
- VisionModule* light_detector =  new LightModule("stream",170);
- VisionNode* node = new VisionNode(light_detector, argc, argv);
-//
-//
-//
-// node->init("vision_node");
-// node->run();
-   //detection stuff here
+ VisionModule* obj_detector =  new ObjectModule("stream");
+ VisionNode* node = new VisionNode(obj_detector, argc, argv);
+
+ node->init("vision_node");
+ node->run();
 
   return 0;
 }

@@ -18,7 +18,7 @@ using namespace cv;
 namespace vision{
 
 enum Detection{
-	NOLED=0,
+	NONE=0,
 	RED=10,
 	GREEN=20,
 	BLUE=30,
@@ -76,7 +76,7 @@ public:
 //	}
 	//protected:
 	virtual void doVision() = 0;
-	virtual void show() = 0;
+	void show();
 	virtual void draw() = 0;
 	virtual void print() = 0;
 	Mat input;
@@ -109,12 +109,25 @@ public:
 
 protected:
 	//VisionNode* parent;
+
 	Camera cam;
 	const std::string window_name;
+
+	Mat	hsv;
+	Mat red_mask;
+
 	Point3d location;
     Type type;
+	vector<vector<Point> > contours_poly;
+	Point centroid, centroid_R;
+
 
 	Point3d calculateLocation(Point L, Point R);
+	Point findVisualPair(int color_index);
+	vector<Mat> seperateChannels(Mat in);
+	Point getCentroid(Mat in);
+	void getRectangle(Mat in);
+	int checkSingleColor(Mat in);
 
 	static void onTrackbar(int val, void* ptr);
 	static void onTrackbar2(int val, void* ptr);
@@ -137,8 +150,6 @@ public:
 	virtual ~LightModule(){}
 
 	void doVision();
-	Point findVisualPair(int color_index);
-	void show();
 	void draw();
 	void print();
 
@@ -163,7 +174,6 @@ private:
 
 	/* members */
 
-	Mat red_mask;
 	Mat green_mask;
 	Mat blue_mask;
 	Mat* active_mask;
@@ -174,25 +184,17 @@ private:
 
 	Mat	extra1;
 
-	Mat	hsv;
 	Mat grayscale;
 
 	/* outputs */
 	//TODO:: Structurize the output data
 	//vector<vector<Point> > *contours_poly;
-	Point centroid, centroid_R;
-	vector<vector<Point> > contours_poly;
 	Scalar color;
 	std::string color_text;
 
 	/*vision methods*/
 	void LEDDetection();
 	void colorFromMaxIntensity();
-
-	int checkSingleLed(Mat in);
-	vector<Mat> seperateChannels(Mat in);
-	Point getCentroid(Mat in);
-	void getRectangle(Mat in);
 
 	/*image helpers*/
 	void cvtGray();
@@ -213,7 +215,6 @@ public:
 	virtual ~ObjectModule(){}
 
 	void doVision();
-	void show();
 	void draw();
 	void print();
 private:

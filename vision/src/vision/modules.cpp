@@ -16,12 +16,14 @@ using namespace cv;
 /////////////
 /* VisionMoudel: Base class*/
 VisionModule::VisionModule(std::string name):
-						framelist(0),
-						cam(),
-						sel(NOLED)
+								framelist(0),
+								cam(),
+								sel(NONE)
 
 {
 	cam.read = false;
+	contours_poly= vector<vector<Point> >(1);
+
 	namedWindow(window_name, 1);
 	startWindowThread();
 	int mouseParam= CV_EVENT_FLAG_LBUTTON;
@@ -68,11 +70,64 @@ Point3d VisionModule::calculateLocation(Point L, Point R){
 
 	double Z= cam.Tx_r/(xl-cam.cx_l-xr+cam.cx_r);
 	double Y=((yl+yr)/2-cam.cy)*Z/cam.fy;
-	double X=((xl)/2-cam.cx_l)*Z/cam.fx;
+	double X=((xl)-cam.cx_l)*Z/cam.fx;
 	//ROS_INFO("(%.2f,%.2f,%.2f)",X,Y,Z);
 	return Point3d(X,Y,Z);
 }
+Point VisionModule::findVisualPair(int color_index){
+	Mat hsv_R;
+	cvtColor(input_R, hsv_R, CV_BGR2HSV);
+	vector<Mat> masks = seperateChannels(hsv_R);
+	return getCentroid(masks[color_index]);
 
+}
+
+vector<Mat> VisionModule::seperateChannels(Mat in){
+	// create local Mats
+
+	Mat red1,red2;
+	Mat mask_med,mask;
+	vector<Mat> out(3);
+
+	//red
+	inRange(in, HSV_RED_LOW,HSV_RED_HIGH, red1);
+	inRange(in, HSV_RED_2_LOW,HSV_RED_2_HIGH, red2);
+	bitwise_or(red1,red2,out[RED_LED]);
+	//green
+	inRange(in, HSV_GREEN_LOW,HSV_GREEN_HIGH, out[GREEN_LED]);
+	//blue
+	inRange(in,HSV_BLUE_LOW, HSV_BLUE_HIGH,out[BLUE_LED]);
+
+	return out;
+}
+int VisionModule::checkSingleColor
+(Mat in){
+	int count = countNonZero(in);
+	if(count>35) {
+		//ROS_INFO("Blue pix count: %d", count);//ROS_INFO("pix count: %d", cr);
+		centroid = getCentroid(in);
+		getRectangle(in);
+	}
+	else count=0;
+	return count;
+}
+Point VisionModule::getCentroid(Mat in){
+	Moments m = moments((in>=50),true);
+	Point2d p(m.m10/m.m00, m.m01/m.m00);
+	return p;
+}
+void VisionModule::getRectangle(Mat in){
+	/// Function header
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+
+	// Approximate contours to polygons + get bounding rects and circles
+	findContours( in, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+	approxPolyDP( Mat(contours[0]), contours_poly[0], 3, true );
+	//boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+
+}
 void VisionModule::toggleOutput(){
 	vector<Mat*>::iterator it,end;
 	int next;
@@ -92,6 +147,10 @@ void VisionModule::toggleOutput(){
 	}
 }
 
+void VisionModule::show(){
+	imshow(window_name, *output);
+	//if(waitKey(30) >= 0) exit(0);
+}
 
 void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 {
@@ -126,14 +185,13 @@ void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 /* LightModule: Light Detection Module*/
 
 LightModule::LightModule(std::string name, short int t):
-									VisionModule(name),
-									threshold(t),slider(t),
-									blursize(0), slider2(blursize),
-									color(0,0,0),color_text("")
+											VisionModule(name),
+											threshold(t),slider(t),
+											blursize(0), slider2(blursize),
+											color(0,0,0),color_text("")
 {
 
 	active_mask=NULL;
-	contours_poly= vector<vector<Point> >(1);
 
 	framelist.push_back(&red_mask);
 	framelist.push_back(&blue_mask);
@@ -160,18 +218,6 @@ void LightModule::doVision(){
 
 }
 
-Point LightModule::findVisualPair(int color_index){
-	Mat hsv_R;
-	cvtColor(input_R, hsv_R, CV_BGR2HSV);
-	vector<Mat> masks = seperateChannels(hsv_R);
-	return getCentroid(masks[color_index]);
-
-}
-
-void LightModule::show(){
-	imshow(window_name, *output);
-	//if(waitKey(30) >= 0) exit(0);
-}
 void LightModule::draw(){
 	//waitKey(5);
 	circle(*output, centroid, 2,  color, 1, 8, 0);
@@ -189,38 +235,34 @@ void LightModule::LEDDetection(){
 
 	switch (sel) {
 	default:
-	case NOLED:
+	case NONE:
 		sel=OUTPUT;
-		if 	(checkSingleLed(red_mask)){
+		if 	(checkSingleColor(red_mask)){
 			active_mask=&red_mask;
 			color_text="RED";
 			type=RED_LED;
 		}
-		else if (checkSingleLed(green_mask)){
+		else if (checkSingleColor(green_mask)){
 			active_mask=&green_mask;
 			color_text="GREEN";
 			type=GREEN_LED;
 		}
-		else if	(checkSingleLed(blue_mask)){
+		else if	(checkSingleColor(blue_mask)){
 			active_mask=&blue_mask;
 			color_text="BLUE";
 			type=BLUE_LED;
 		}
 		else{
-			sel=NOLED;
+			sel=NONE;
 			break;
 		}
-
-
 	case OUTPUT:
 		//ROS_INFO("out");
 		print();
 		centroid_R = findVisualPair(type%3);
 		location = calculateLocation(centroid,centroid_R);
 		draw();
-
 		break;
-
 
 	case DETECTED:
 
@@ -231,7 +273,7 @@ void LightModule::LEDDetection(){
 			centroid = Point(0,0);
 			centroid_R = Point(0,0);
 			color = Scalar(0,0,0);
-			sel = NOLED;
+			sel = NONE;
 		}
 
 		break;
@@ -261,53 +303,9 @@ void LightModule::colorFromMaxIntensity() {
 
 	}
 }
-int LightModule::checkSingleLed(Mat in){
-	int count = countNonZero(in);
-	if(count>35) {
-		//ROS_INFO("Blue pix count: %d", count);//ROS_INFO("pix count: %d", cr);
-		centroid = getCentroid(in);
-		getRectangle(in);
-	}
-	else count=0;
-	return count;
-}
 
-vector<Mat> LightModule::seperateChannels(Mat in){
-	// create local Mats
 
-	Mat red1,red2;
-	Mat mask_med,mask;
-	vector<Mat> out(3);
 
-	//red
-	inRange(in, HSV_RED_LOW,HSV_RED_HIGH, red1);
-	inRange(in, HSV_RED_2_LOW,HSV_RED_2_HIGH, red2);
-	bitwise_or(red1,red2,out[RED_LED]);
-	//green
-	inRange(in, HSV_GREEN_LOW,HSV_GREEN_HIGH, out[GREEN_LED]);
-	//blue
-	inRange(in,HSV_BLUE_LOW, HSV_BLUE_HIGH,out[BLUE_LED]);
-
-	return out;
-}
-
-Point LightModule::getCentroid(Mat in){
-	Moments m = moments((in>=50),true);
-	Point2d p(m.m10/m.m00, m.m01/m.m00);
-	return p;
-}
-void LightModule::getRectangle(Mat in){
-	/// Function header
-	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-
-	// Approximate contours to polygons + get bounding rects and circles
-	findContours( in, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
-	approxPolyDP( Mat(contours[0]), contours_poly[0], 3, true );
-	//boundRect[i] = boundingRect( Mat(contours_poly[i]) );
-
-}
 /*image helpers*/
 void LightModule::cvtGray(){
 	cvtColor(input, grayscale, CV_BGR2GRAY);
@@ -360,11 +358,36 @@ void LightModule::onToggle(int state, void* ptr){
 //////////////
 /* ObjectMoudel: Object recognition module*/
 ObjectModule::ObjectModule(std::string name):
-									VisionModule(name)
+											VisionModule(name)
 {
+
 }
 
-void ObjectModule::doVision(){}
-void ObjectModule::show(){}
-void ObjectModule::draw(){}
-void ObjectModule::print(){}
+void ObjectModule::doVision(){
+	cvtColor(input, hsv, CV_BGR2HSV);
+	vector<Mat> masks=seperateChannels(hsv);
+	red_mask=masks[RED_LED];
+
+	if (checkSingleColor(red_mask)){
+		sel=OUTPUT;
+		type=BUTTON;
+		print();
+		centroid_R = findVisualPair(RED_LED);
+		location = calculateLocation(centroid,centroid_R);
+		draw();
+	}
+	else{
+		centroid = Point(0,0);
+		centroid_R = Point(0,0);
+		sel = NONE;
+	}
+
+}
+
+void ObjectModule::draw(){
+	circle(*output, centroid, 2,  Scalar(0,0,0), 1, 8, 0);
+}
+void ObjectModule::print(){
+	ROS_INFO("[LEFT] BUTTON at %d,%d", centroid.x, centroid.y);
+	ROS_INFO("[RIGHT]	 at %d,%d", centroid_R.x, centroid_R.y);
+}
