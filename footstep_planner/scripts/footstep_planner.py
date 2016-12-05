@@ -20,8 +20,9 @@ ROBOT_NAME = None
 LEFT_FOOT_FRAME_NAME = None
 RIGHT_FOOT_FRAME_NAME = None
 
-
-
+goal
+buttonLocation = (0.0, 0.0, 0.0)
+goalReached = False
 
 LEG_LINK_1 = .8342
 LEG_LINK_2 = .0609
@@ -156,34 +157,11 @@ def planNextFootstep():
 
 	#return 
 
-
-def walkTest():
-    msg = FootstepDataListRosMessage()
-    msg.transfer_time = 1.5
-    msg.swing_time = 1.5
-    msg.execution_mode = 0
-    msg.unique_id = -1
-
-    # walk forward starting LEFT
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.5353, 0, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [0.4, -0.1, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.6, -0.05, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [0.8, -0.15, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [1.0, -0.1, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [1.2, -0.2, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [1.4, -0.15, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [1.6, -0.25, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [1.8, -0.2, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [2.0, -0.3, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [2.2, -0.25, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [2.4, -0.35, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [2.6, -0.3, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(RIGHT, [2.8, -0.4, 0.0]))
-    msg.footstep_data_list.append(createFootStepOffset(LEFT, [3.0, -0.35, 0.0]))
-
-    footStepListPublisher.publish(msg)
-    rospy.loginfo('walk forward...')
-    waitForFootsteps(len(msg.footstep_data_list))
+def runWalker():
+    while not goalReached
+        print("Next step towards"+goal)
+        planNextStep(goal)
+        print(".")
 
 # Creates footstep with the current position and orientation of the foot.
 def createFootStepInPlace(stepSide):
@@ -230,6 +208,10 @@ def recievedFootStepStatus(msg):
     if msg.status == 1:
         stepCounter += 1
 
+
+def goalReceived(msg):
+    global button_position=msg.point
+
 if __name__ == '__main__':
     try:
         rospy.init_node('ihmc_walk_test')
@@ -253,8 +235,11 @@ if __name__ == '__main__':
 
                 tfBuffer = tf2_ros.Buffer()
                 tfListener = tf2_ros.TransformListener(tfBuffer)
+                
+                buttonSubscriber = rospy.Subscriber("/button_topic",goalReceived,queue_size=10)
+                                
 
-                rate = rospy.Rate(10) # 10hz
+                rate = rospy.Rate(30) # 10hz
                 time.sleep(1)
 
                 # make sure the simulation is running otherwise wait
@@ -263,9 +248,10 @@ if __name__ == '__main__':
                     while footStepListPublisher.get_num_connections() == 0:
                         rate.sleep()
 
-                if not rospy.is_shutdown():
-					# walkTest()
-					planNextFootstep()
+                if not rospy.is_shutdown():                                                                                                
+                    runWalker()
+                
+                
             else:
                 if not rospy.has_param(left_foot_frame_parameter_name):
                     rospy.logerr("Missing parameter {0}".format(left_foot_frame_parameter_name))
