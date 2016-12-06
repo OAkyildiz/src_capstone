@@ -146,16 +146,25 @@ add_executable(object_recognition_node
   src/${PROJECT_NAME}/object_node.cpp
 )
 
+add_executable(transform_node 
+  src/${PROJECT_NAME}/transform_node.cpp
+)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
  add_dependencies(object_recognition_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(light_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-## Specify libraries to link a library or executable target against
+ add_dependencies(transform_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+ ## Specify libraries to link a library or executable target against
  target_link_libraries(light_detection_node
    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
  target_link_libraries(object_recognition_node
    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
+)
+
+ target_link_libraries(transform_node
+   ${catkin_LIBRARIES}
 )
 #############
 ## Install ##
@@ -172,7 +181,7 @@ add_executable(object_recognition_node
 # )
 
 ## Mark executables and/or libraries for installation
- install(TARGETS object_recognition_node light_detection_node
+ install(TARGETS object_recognition_node light_detection_node transform_node
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

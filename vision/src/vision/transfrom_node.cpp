@@ -36,9 +36,11 @@ private:
 	void setupParams(){}
 	void setupCustom(){
 			
-			objects_sub_= ;
-			object_pub_= nh_->advertise<geometry_msgs::PointStamped>("/objects", 30);
-	
+			objects_sub_= nh_-> subscribe("/objects", 30, &TransformNode::objectCallback, this);
+
+			button_pub_= nh_->advertise<geometry_msgs::PointStamped>("/objects", 30);
+			door_pub_= nh_->advertise<geometry_msgs::PointStamped>("/door", 30);
+
 	}
 	void operation(){}
 
@@ -63,6 +65,7 @@ private:
 		case vision::GREEN_LED:
 		case vision::BLUE_LED:
 			target_frame="head"
+
 			//led publish
 			break;
 		case vision::BUTTON:
@@ -73,7 +76,7 @@ private:
 		case vision::DOOR_CLOSED:
 			target_frame="pelvis";
 			topic="/button";
-			selected_pub_ptr=button_pub*;
+			selected_pub_ptr=button_pub_*;
 			break;
 		}
 		
@@ -87,7 +90,7 @@ private:
 		catch (tf::TransformException &ex){
 			printf ("Failure %s\n", ex.what()); //Print exception which was caught
 		}
-		
+		selected_pub_ptr->publish(point_out);
 	}
 };
 
