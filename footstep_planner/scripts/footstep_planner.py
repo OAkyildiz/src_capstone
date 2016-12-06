@@ -24,7 +24,7 @@ RIGHT_FOOT_FRAME_NAME = None
 
 goal = [3.0, - 0.35, 0.0]
 buttonLocation = [0.0, 0.0, 0.0]
-goalReached = False
+#goalReached = False
 
 LEG_LINK_1 = .8342
 LEG_LINK_2 = .0609
@@ -33,7 +33,7 @@ HIP_HEIGHT = .71736
 
 
 LEG_BEND = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
-FOOT_REACH = numpy.sin(LEG_BEND)*LEG_TOTAL - .11
+FOOT_REACH = (numpy.sin(LEG_BEND)*LEG_TOTAL) - .11
 SIDE_REACH = FOOT_REACH - .04
 
 #constants for offsetting steps
@@ -56,11 +56,17 @@ def createFootStepDataTemplate(t_transfer, t_swing, mode, id):
 def placeStep(goal, isSide, whichSide):
     tan_path = goal[1]/goal[0]
     theta_path = numpy.arctan(tan_path)
-    #goal is a point
+    if theta_path < -pi/4:
+        isSide = True
+        if getFootGap() < .2
+            whichSide = LEFT
+    global Ly
     if isSide:
+        
         reach = SIDE_REACH
         y_offset_tmp = 2*Y_OFFSET
         d=.08
+        Ly=-.2
     else:
         reach = FOOT_REACH
         y_offset_tmp = Y_OFFSET
@@ -69,16 +75,25 @@ def placeStep(goal, isSide, whichSide):
     if whichSide == RIGHT:
         d = -d
         y_offset_tmp = -y_offset_tmp
+        
+    else:
+        Ly=0
 
-    x=numpy.cos(theta_path)*reach - X_OFFSET
-    y=numpy.sin(theta_path)*reach - y_offset_tmp - d
+    print(whichSide)
+    #if whichSide == LEFT:
+    #   y_off        
 
+    x=(numpy.cos(theta_path)*reach) - X_OFFSET 
+    y=(numpy.sin(theta_path)*reach) + y_offset_tmp + d +Ly
+
+    #Lx=x
     return [x,y]
 
 
 def createNextFootstepMsg(side,point):
-    x,y,z = goal
-    msg = createFootStepDataTemplate(1.5, 1.5, 1, -1)
+        
+    x,y = point
+    msg = createFootStepDataTemplate(1.5, 1.5, 1, -1)    
     msg.footstep_data_list.append(createFootStepOffset(side, [x, y, 0.0]))
     return msg
 
@@ -87,7 +102,7 @@ def createNextFootstepMsg(side,point):
 def updateGoal(dead_recon):
     global goal, buttonLocation
     if dead_recon:
-        goal[0] -= dead_recon[2]
+        goal[0] -= dead_recon[0]
         goal[1] -= dead_recon[1]
         goal[2] -= 0
     else:
@@ -95,14 +110,17 @@ def updateGoal(dead_recon):
         goal[1] = buttonLocation.y
 
 def isGoalReached():
-    return goal[0]<0.1 and abs(goal[1])<0.2
+    return goal[0]<0.4
+
+def isGoalReachedSide():
+    return abs(goal[1])<0.03
 
 def goToButton():
     side = RIGHT
     while not isGoalReached():
-        print("Next step towards")
-        print(goal)
+        print("Next step towards:",goal)
         step = placeStep(goal, False, side)
+        print("-", step)
         msg = createNextFootstepMsg(side, step)
         footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
         waitForFootsteps(1)
@@ -113,10 +131,10 @@ def goToButton():
 def sideStep():
     side = LEFT
     global goal
-    goal[1]=0.35
-    while not isGoalReached():
-        print("Next step towards:",goal)
-        step = placeStep(goal, true, side)
+    goal[1]=0
+    while not isGoalReachedSide():
+        print("Side stepping:",goal)
+        step = placeStep(goal, True, side)
         print("-", step)
         msg = createNextFootstepMsg(side, step)
         footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
@@ -146,10 +164,10 @@ def createFootStepInPlace(stepSide):
     footstep.robot_side = stepSide
 
     if stepSide == LEFT:
-        foot_frame = LEFT_FOOT_FRAME_NAME
+        foot_frame = RIGHT_FOOT_FRAME_NAME
 
     else:
-        foot_frame = RIGHT_FOOT_FRAME_NAME
+        foot_frame = LEFT_FOOT_FRAME_NAME
 
     footWorld = tfBuffer.lookup_transform('world', foot_frame, rospy.Time())
     footstep.orientation = footWorld.transform.rotation
@@ -174,6 +192,10 @@ def createFootStepOffset(stepSide, offset):
     print("on world:", footstep.location)
     return footstep
 
+def getFootGap():
+    feetTf = tfBuffer.lookup_transform(RIGHT_FOOT_FRAME_NAME, LEFT_FOOT_FRAME_NAME, rospy.Time())
+
+    return abs(feetTf.transform.translation.y)
 
 #!!!!
 def waitForFootsteps(numberOfSteps):
@@ -232,6 +254,7 @@ if __name__ == '__main__':
 
                 if not rospy.is_shutdown():                                                                                                
                     goToButton()
+                    rospy.sleep(5)
                     sideStep()
                     walkToFinish()
                 
