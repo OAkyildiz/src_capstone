@@ -56,9 +56,10 @@ def createFootStepDataTemplate(t_transfer, t_swing, mode, id):
 def placeStep(goal, isSide, whichSide):
     tan_path = goal[1]/goal[0]
     theta_path = numpy.arctan(tan_path)
-    if theta_path < -pi/4:
+    if theta_path < -numpy.pi/4:
         isSide = True
-        if getFootGap() < .2
+        print('sideStep')
+        if getFootGap() < .2:
             whichSide = LEFT
     global Ly
     if isSide:
