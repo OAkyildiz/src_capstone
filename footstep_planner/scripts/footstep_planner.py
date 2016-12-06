@@ -13,6 +13,8 @@ from ihmc_msgs.msg import FootstepStatusRosMessage
 from ihmc_msgs.msg import FootstepDataListRosMessage
 from ihmc_msgs.msg import FootstepDataRosMessage
 
+from vision.msg import DetectedObject
+
 LEFT = 0
 RIGHT = 1
 
@@ -37,6 +39,8 @@ SIDE_REACH = FOOT_REACH - .04
 #constants for offsetting steps
 X_OFFSET=.040204
 Y_OFFSET=.1070573
+
+Lx,Ly,Rx,Ry =0,0,0,0
 
 def createFootStepDataTemplate(t_transfer, t_swing, mode, id):
     temp_msg = FootstepDataListRosMessage()
@@ -73,7 +77,7 @@ def placeStep(goal, isSide, whichSide):
 
 
 def createNextFootstepMsg(side,point):
-    x,y = goal
+    x,y,z = goal
     msg = createFootStepDataTemplate(1.5, 1.5, 1, -1)
     msg.footstep_data_list.append(createFootStepOffset(side, [x, y, 0.0]))
     return msg
@@ -102,7 +106,37 @@ def goToButton():
         msg = createNextFootstepMsg(side, step)
         footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
         waitForFootsteps(1)
-        updateGoal(False)
+        updateGoal(step)
+        side ^= 1
+        print(".")
+
+def sideStep():
+    side = LEFT
+    global goal
+    goal[1]=0.35
+    while not isGoalReached():
+        print("Next step towards:",goal)
+        step = placeStep(goal, true, side)
+        print("-", step)
+        msg = createNextFootstepMsg(side, step)
+        footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
+        waitForFootsteps(1)
+        updateGoal(step)
+        side ^= 1
+        print(".")
+
+def walkToFinish():
+    side = RIGHT
+    global goal
+    goal[0]=2
+    while not isGoalReached():
+        print("Next step towards")
+        print(goal)
+        step = placeStep(goal, true, side)
+        msg = createNextFootstepMsg(side, step)
+        footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
+        waitForFootsteps(1)
+        updateGoal(step)
         side ^= 1
         print(".")
 
@@ -136,7 +170,8 @@ def createFootStepOffset(stepSide, offset):
     footstep.location.x += transformedOffset[0]
     footstep.location.y += transformedOffset[1]
     footstep.location.z += transformedOffset[2]
-
+    
+    print("on world:", footstep.location)
     return footstep
 
 
@@ -183,7 +218,7 @@ if __name__ == '__main__':
                 tfBuffer = tf2_ros.Buffer()
                 tfListener = tf2_ros.TransformListener(tfBuffer)
                 
-                buttonSubscriber = rospy.Subscriber("/button_topic",goalReceived,queue_size=10)
+                #buttonSubscriber = rospy.Subscriber("/button",goalReceived,queue_size=10)
                                 
 
                 rate = rospy.Rate(30) # 10hz
@@ -197,6 +232,8 @@ if __name__ == '__main__':
 
                 if not rospy.is_shutdown():                                                                                                
                     goToButton()
+                    sideStep()
+                    walkToFinish()
                 
                 
             else:
