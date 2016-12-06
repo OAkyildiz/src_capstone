@@ -1,5 +1,5 @@
-#id
-string frame_id
+#header
+std_msgs/Header header
 
 #object type
 uint8 RED_LED=0

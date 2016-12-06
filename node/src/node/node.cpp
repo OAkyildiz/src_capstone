@@ -16,7 +16,7 @@ Node::Node(int argc, char** argv):
 				nh_(0),
 				pnh_(0),
 				init_argc(argc),
-			  init_argv(argv)
+				init_argv(argv)
 
 {}
 
@@ -50,8 +50,10 @@ bool Node::init(const std::string &name, const std::string &master_url, const st
 		ROS_ERROR("Cannot communicate with the ROSMASTER!");
 		return false;
 	}
-	setup();
-	return true;
+	else{
+		setup();
+		return true;
+	}
 }
 
 bool Node::setup() {
