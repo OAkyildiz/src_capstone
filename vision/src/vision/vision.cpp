@@ -61,7 +61,7 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 		left_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/left/"+ IMAGE_TYPE, 100, &VisionNode::visionCallback, this);
 
 		if(IS_STEREO){
-			right_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/right/"+ IMAGE_TYPE, 1000, &VisionNode::disparityCallback, this);
+			right_camera_sub = it_-> subscribe(CAMERA_NAMESPACE + "/right/"+ IMAGE_TYPE, 100, &VisionNode::disparityCallback, this);
 			right_info_sub = nh_-> subscribe(CAMERA_NAMESPACE + "/right/"+ info, 100, &VisionNode::camereInfoCallback, this);
 		}
 		else
@@ -81,9 +81,7 @@ void VisionNode::operation() {
 	// operations here
 	//module->doVision();
 	if(safe)
-		int e1 = getTickCount();
-		module->doVision();
-		int e2 = getTickCount();
+		
 		//ROS_INFO("Operation time: %.3f \n",(e2 - e1)/ getTickFrequency());
 		publish();
 		module->show();
@@ -111,8 +109,11 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 	//TODO: pass the setter method and object pointer to the helper method instead.
 	if( convertImage(image, STEREO_LEFT) == 0){
 
-		safe = true;
-
+		if(safe){
+		int e1 = getTickCount();
+		module->doVision();
+		int e2 = getTickCount();
+		}
 	}
 	else safe = false;
 
@@ -120,6 +121,7 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 }
 void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
 	convertImage(image, STEREO_RIGHT);
+ 	safe = true;
 
 }
 // Maybe assign fileds 1 by 1 in loadCamera

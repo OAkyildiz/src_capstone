@@ -30,46 +30,56 @@ LEG_TOTAL = LEG_LINK_1 + LEG_LINK_2
 HIP_HEIGHT = .71736
 
 def planNextFootstep():
-	straight = 1
-	msg = FootstepDataListRosMessage()
-	msg.transfer_time = 1.5
-	msg.swing_time = 1.5
-	msg.execution_mode = 1
-	msg.unique_id = -1
-	if straight == 1:
-		START_X = 0
-		START_Y = 0
-		END_X = 3
-		END_Y = -.35
-
+    straight = 1
+    msg = FootstepDataListRosMessage()
+    msg.transfer_time = 1.5
+    msg.swing_time = 1.5
+    msg.execution_mode = 1
+    msg.unique_id = -1
+    
+    
+    print('wolf')
+    if straight == 1:
+        START_X = 0
+        START_Y = 0
+        END_X = 3
+        END_Y = -.35
 		
 
-		A = (END_X-START_X)/(END_Y-START_Y)
-		B = START_Y-(A*START_X)
-		GO = 1
-		ARC = numpy.arctan((END_Y-START_Y)/(END_X-START_X))
+        A = (END_X-START_X)/(END_Y-START_Y)
+        B = START_Y-(A*START_X)
+        GO = 1
+        ARC = numpy.arctan((END_Y-START_Y)/(END_X-START_X))
 	
-		A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
-		R = numpy.sin(A1)*LEG_TOTAL - .11
-		Lx = START_X
-		Ly = START_Y
-		Rx = START_X
-		Ry = START_Y
-		d = .1
-		while END_X-Rx > .6 and GO == 1:
-			Rx = (numpy.cos(ARC)*R)-.040204 + Lx 
-			Ry = (numpy.sin(ARC)*R)+.1070573 + Ly - d
-	    	#msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.5353, 0, 0.0]))
-			msg.footstep_data_list.append(createFootStepOffset(RIGHT, [Rx, Ry, 0.0]))
+        A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
+        R = numpy.sin(A1)*LEG_TOTAL - .11
+        Lx = START_X
+        Ly = START_Y
+        Rx = START_X
+        Ry = START_Y
+        d = .1
+        side = RIGHT
+        while END_X-Rx > .6 and END_X-Lx > .6 and GO == 1:
+            msg.footstep_data_list=[]
+            if side == RIGHT: 
+				print(RIGHT)
+				Rx = (numpy.cos(ARC)*R)-.040204 + Lx 
+				Ry = (numpy.sin(ARC)*R)+.1070573 + Ly - d
+				print(Rx,Ry)				
+				msg.footstep_data_list.append(createFootStepOffset(RIGHT, [Rx, Ry, 0.0]))
+				side=LEFT
 
-			if END_X-Lx > .6:
-				Lx = (numpy.cos(ARC)*R)-.040204 + Rx
-				Ly = (numpy.sin(ARC)*R)-.1070573 + Ry + d
-	       	 #msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.5353, 0, 0.0]))
-				msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
-			else:
-				GO = 0
-	sideways = 1
+            elif side == LEFT:
+                print(LEFT)
+                Lx = (numpy.cos(ARC)*R)-.040204 + Rx
+                Ly = (numpy.sin(ARC)*R)-.1070573 + Ry + d
+                print(Lx,Ly)
+                msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
+                side=RIGHT
+            footStepListPublisher.publish(msg)
+            rospy.loginfo('taking a step...')
+            waitForFootsteps(len(msg.footstep_data_list))
+	sideways = 0
 #WALK SIDEWAYS
 	if sideways == 1:
 		
@@ -104,6 +114,7 @@ def planNextFootstep():
 				Ry = (numpy.sin(ARC)*R)+(2*.1070573) + Ly 
 
 				if Ry > (Ly - .16):
+
 					Ry = (Ly - .07)
 				
 
@@ -112,8 +123,8 @@ def planNextFootstep():
 				GO = 0
 
 
-#WALK Straight
-	st = 1
+#WALK Straight  
+	st = 0
 	if st == 1:
 		
 		START_X = 3
@@ -137,7 +148,7 @@ def planNextFootstep():
 		A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
 		R = numpy.sin(A1)*LEG_TOTAL - .108 
 		while END_X-Lx > .04 and GO == 1:
-		
+		    
 			Lx = (numpy.cos(ARC)*R)-.040204 + Rx 
 			Ly = (numpy.sin(ARC)*R)-.1070573 + Ry + d   
 			msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
@@ -150,12 +161,12 @@ def planNextFootstep():
 				GO = 0
 
 
-			footStepListPublisher.publish(msg)
-			rospy.loginfo('taking a step...')
-			waitForFootsteps(len(msg.footstep_data_list))
+	footStepListPublisher.publish(msg)
+	rospy.loginfo('taking a step...')
+			#waitForFootsteps(len(msg.footstep_data_list))
 			#updateGoal()	
 			
-		print("finished walking")
+	print("finished walking")
 
 	#return 
 
@@ -193,16 +204,21 @@ def createFootStepInPlace(stepSide):
     footstep = FootstepDataRosMessage()
     footstep.robot_side = stepSide
 
+    global rightFootWorld, leftFootWorld
     if stepSide == LEFT:
-        foot_frame = LEFT_FOOT_FRAME_NAME
+        #foot_frame = LEFT_FOOT_FRAME_NAME
+        world=leftFootWorld
 	
     else:
-        foot_frame = RIGHT_FOOT_FRAME_NAME
-	
+        #foot_frame = RIGHT_FOOT_FRAME_NAME
+	    world=rightFootWorld
 
-    footWorld = tfBuffer.lookup_transform('world', foot_frame, rospy.Time())
-    footstep.orientation = footWorld.transform.rotation
-    footstep.location = footWorld.transform.translation
+
+    footstep.orientation = world.transform.rotation
+    footstep.location = world.transform.translation
+    footstep.location.x = 0
+    footstep.location.y = 0
+    #footstep.location.z = 0
 
     return footstep
 
@@ -215,10 +231,12 @@ def createFootStepOffset(stepSide, offset):
     rot = tf.transformations.quaternion_matrix([quat.x, quat.y, quat.z, quat.w])
     transformedOffset = numpy.dot(rot[0:3, 0:3], offset)
 
+    print("offset_T:",transformedOffset)
     footstep.location.x += transformedOffset[0]
     footstep.location.y += transformedOffset[1]
     footstep.location.z += transformedOffset[2]
-
+    
+    print('created msg' , footstep.location)
     return footstep
 
 def waitForFootsteps(numberOfSteps):
@@ -234,6 +252,7 @@ def recievedFootStepStatus(msg):
         stepCounter += 1
 
 if __name__ == '__main__':
+    global leftFootWorld, rightFootWorld
     try:
         rospy.init_node('ihmc_walk_test')
 
@@ -268,7 +287,9 @@ if __name__ == '__main__':
 
                 if not rospy.is_shutdown():
 					# walkTest()
-					planNextFootstep()
+                    rightFootWorld = tfBuffer.lookup_transform('world', RIGHT_FOOT_FRAME_NAME, rospy.Time())
+                    leftFootWorld = tfBuffer.lookup_transform('world', LEFT_FOOT_FRAME_NAME, rospy.Time())
+                    planNextFootstep()
             else:
                 if not rospy.has_param(left_foot_frame_parameter_name):
                     rospy.logerr("Missing parameter {0}".format(left_foot_frame_parameter_name))

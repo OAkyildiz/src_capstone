@@ -169,11 +169,11 @@ Point LightModule::findVisualPair(int color_index){
 }
 
 void LightModule::show(){
-	imshow(window_name, *output);
+	//imshow(window_name, *output);
 	//if(waitKey(30) >= 0) exit(0);
 }
 void LightModule::draw(){
-	//waitKey(5);
+	waitKey(5);
 	circle(*output, centroid, 2,  color, 1, 8, 0);
 	drawContours( *output, contours_poly, 0, color, 1, 8, vector<Vec4i>(), 0, Point() );
 
