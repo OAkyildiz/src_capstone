@@ -20,147 +20,90 @@ ROBOT_NAME = None
 LEFT_FOOT_FRAME_NAME = None
 RIGHT_FOOT_FRAME_NAME = None
 
-goal
-buttonLocation = (0.0, 0.0, 0.0)
+goal = [3.0, - 0.35, 0.0]
+buttonLocation = [0.0, 0.0, 0.0]
 goalReached = False
 
 LEG_LINK_1 = .8342
 LEG_LINK_2 = .0609
 LEG_TOTAL = LEG_LINK_1 + LEG_LINK_2
-
 HIP_HEIGHT = .71736
 
-def planNextFootstep():
-	straight = 1
-	msg = FootstepDataListRosMessage()
-	msg.transfer_time = 1.5
-	msg.swing_time = 1.5
-	msg.execution_mode = 1
-	msg.unique_id = -1
-	if straight == 1:
-		START_X = 0
-		START_Y = 0
-		END_X = 3
-		END_Y = -.35
 
-		
+LEG_BEND = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
+FOOT_REACH = numpy.sin(LEG_BEND)*LEG_TOTAL - .11
+SIDE_REACH = FOOT_REACH - .04
 
-		A = (END_X-START_X)/(END_Y-START_Y)
-		B = START_Y-(A*START_X)
-		GO = 1
-		ARC = numpy.arctan((END_Y-START_Y)/(END_X-START_X))
-	
-		A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
-		R = numpy.sin(A1)*LEG_TOTAL - .11
-		Lx = START_X
-		Ly = START_Y
-		Rx = START_X
-		Ry = START_Y
-		d = .1
-		while END_X-Rx > .6 and GO == 1:
-			Rx = (numpy.cos(ARC)*R)-.040204 + Lx 
-			Ry = (numpy.sin(ARC)*R)+.1070573 + Ly - d
-	    	#msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.5353, 0, 0.0]))
-			msg.footstep_data_list.append(createFootStepOffset(RIGHT, [Rx, Ry, 0.0]))
+#constants for offsetting steps
+X_OFFSET=.040204
+Y_OFFSET=.1070573
 
-			if END_X-Lx > .6:
-				Lx = (numpy.cos(ARC)*R)-.040204 + Rx
-				Ly = (numpy.sin(ARC)*R)-.1070573 + Ry + d
-	       	 #msg.footstep_data_list.append(createFootStepOffset(LEFT, [0.5353, 0, 0.0]))
-				msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
-			else:
-				GO = 0
-	sideways = 1
-#WALK SIDEWAYS
-	if sideways == 1:
-		
-		START_X = 3
-		START_Y = -.35
-		END_X = 3.01
-		END_Y = 0
+def createFootStepDataTemplate(t_transfer, t_swing, mode, id):
+    temp_msg = FootstepDataListRosMessage()
+    temp_msg.transfer_time = t_transfer
+    temp_msg.swing_time = t_swing
+    temp_msg.execution_mode = mode
+    temp_msg.unique_id = id
 
-	#	Lx = START_X
-	#	Ly = START_Y
-	#	Rx = START_X
-	#	Ry = START_Y
+    return temp_msg
+#side: string
 
 
-		d = .08
+def placeStep(goal, isSide, whichSide):
+    tan_path = goal[1]/goal[0]
+    theta_path = numpy.arctan(tan_path)
+    #goal is a point
+    if isSide:
+        reach = SIDE_REACH
+        y_offset_tmp = 2*Y_OFFSET
+        d=.08
+    else:
+        reach = FOOT_REACH
+        y_offset_tmp = Y_OFFSET
+        d=.1
 
-		A = (END_X-START_X)/(END_Y-START_Y)
-		B = START_Y-(A*START_X)
-		GO = 1
-		ARC = numpy.arctan((END_Y-START_Y)/(END_X-START_X))
-	
-		A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
-		R = numpy.sin(A1)*LEG_TOTAL - .15 
-		while END_Y-Ly > .03 and GO == 1:
-		
-			Lx = (numpy.cos(ARC)*R)-.040204 + Rx 
-			Ly = (numpy.sin(ARC)*R)-(2*.1070573) + Ry 
-			msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
+    if whichSide == RIGHT:
+        d = -d
+        y_offset_tmp = -y_offset_tmp
 
-			if END_Y-Ry > .03:
-				Rx = (numpy.cos(ARC)*R)-.040204 + Lx 
-				Ry = (numpy.sin(ARC)*R)+(2*.1070573) + Ly 
+    x=numpy.cos(theta_path)*reach - X_OFFSET
+    y=numpy.sin(theta_path)*reach - y_offset_tmp - d
 
-				if Ry > (Ly - .16):
-					Ry = (Ly - .07)
-				
-
-				msg.footstep_data_list.append(createFootStepOffset(RIGHT, [Rx, Ry, 0.0]))
-			else:
-				GO = 0
+    return [x,y]
 
 
-#WALK Straight
-	st = 1
-	if st == 1:
-		
-		START_X = 3
-		START_Y = 0
-		END_X = 5
-		END_Y = 0.01
-
-	#	Lx = START_X
-	#	Ly = START_Y
-	#	Rx = START_X
-	#	Ry = START_Y
+def createNextFootstepMsg(side,point):
+    x,y = goal
+    msg = createFootStepDataTemplate(1.5, 1.5, 1, -1)
+    msg.footstep_data_list.append(createFootStepOffset(side, [x, y, 0.0]))
+    return msg
 
 
-		d = .1
+#feedback: bool
+def updateGoal(dead_recon):
+    global goal, buttonLocation
+    if dead_recon:
+        goal[0] -= dead_recon[2]
+        goal[1] -= dead_recon[1]
+        goal[2] -= 0
+    else:
+        goal[0] = buttonLocation.x
+        goal[1] = buttonLocation.y
 
-		A = (END_X-START_X)/(END_Y-START_Y)
-		B = START_Y-(A*START_X)
-		GO = 1
-		ARC = numpy.arctan((END_Y-START_Y)/(END_X-START_X))
-	
-		A1 = numpy.arccos(HIP_HEIGHT/LEG_TOTAL)
-		R = numpy.sin(A1)*LEG_TOTAL - .108 
-		while END_X-Lx > .04 and GO == 1:
-		
-			Lx = (numpy.cos(ARC)*R)-.040204 + Rx 
-			Ly = (numpy.sin(ARC)*R)-.1070573 + Ry + d   
-			msg.footstep_data_list.append(createFootStepOffset(LEFT, [Lx, Ly, 0.0]))
+def isGoalReached():
+    return goal[0]<0.1 and abs(goal[1])<0.2
 
-			if END_X-Rx > .04:
-				Rx = (numpy.cos(ARC)*R)-.040204 + Lx 
-				Ry = (numpy.sin(ARC)*R)+.1070573 + Ly - d
-				msg.footstep_data_list.append(createFootStepOffset(RIGHT, [Rx, Ry, 0.0]))
-			else:
-				GO = 0
-
-
-	footStepListPublisher.publish(msg)
-	rospy.loginfo('walk forward...')
-	waitForFootsteps(len(msg.footstep_data_list))
-
-	#return 
-
-def runWalker():
-    while not goalReached
-        print("Next step towards"+goal)
-        planNextStep(goal)
+def goToButton():
+    side = RIGHT
+    while not isGoalReached():
+        print("Next step towards")
+        print(goal)
+        step = placeStep(goal, False, side)
+        msg = createNextFootstepMsg(side, step)
+        footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
+        waitForFootsteps(1)
+        updateGoal(False)
+        side ^= 1
         print(".")
 
 # Creates footstep with the current position and orientation of the foot.
@@ -170,16 +113,16 @@ def createFootStepInPlace(stepSide):
 
     if stepSide == LEFT:
         foot_frame = LEFT_FOOT_FRAME_NAME
-	
+
     else:
         foot_frame = RIGHT_FOOT_FRAME_NAME
-	
 
     footWorld = tfBuffer.lookup_transform('world', foot_frame, rospy.Time())
     footstep.orientation = footWorld.transform.rotation
     footstep.location = footWorld.transform.translation
 
     return footstep
+
 
 # Creates footstep offset from the current foot position. The offset is in foot frame.
 def createFootStepOffset(stepSide, offset):
@@ -196,6 +139,8 @@ def createFootStepOffset(stepSide, offset):
 
     return footstep
 
+
+#!!!!
 def waitForFootsteps(numberOfSteps):
     global stepCounter
     stepCounter = 0
@@ -203,14 +148,16 @@ def waitForFootsteps(numberOfSteps):
         rate.sleep()
     rospy.loginfo('finished set of steps')
 
-def recievedFootStepStatus(msg):
+
+def receivedFootStepStatus(msg):
     global stepCounter
     if msg.status == 1:
         stepCounter += 1
 
 
 def goalReceived(msg):
-    global button_position=msg.point
+    global buttonLocation
+    buttonLocation = msg.point
 
 if __name__ == '__main__':
     try:
@@ -230,7 +177,7 @@ if __name__ == '__main__':
                 RIGHT_FOOT_FRAME_NAME = rospy.get_param(right_foot_frame_parameter_name)
                 LEFT_FOOT_FRAME_NAME = rospy.get_param(left_foot_frame_parameter_name)
 
-                footStepStatusSubscriber = rospy.Subscriber("/ihmc_ros/{0}/output/footstep_status".format(ROBOT_NAME), FootstepStatusRosMessage, recievedFootStepStatus)
+                footStepStatusSubscriber = rospy.Subscriber("/ihmc_ros/{0}/output/footstep_status".format(ROBOT_NAME), FootstepStatusRosMessage, receivedFootStepStatus)
                 footStepListPublisher = rospy.Publisher("/ihmc_ros/{0}/control/footstep_list".format(ROBOT_NAME), FootstepDataListRosMessage, queue_size=1)
 
                 tfBuffer = tf2_ros.Buffer()
@@ -249,7 +196,7 @@ if __name__ == '__main__':
                         rate.sleep()
 
                 if not rospy.is_shutdown():                                                                                                
-                    runWalker()
+                    goToButton()
                 
                 
             else:
