@@ -89,7 +89,8 @@ void VisionNode::operation() {
 bool VisionNode::publish(){
 	if (module->sel==OUTPUT){
 		DetectedObject obj_msg;
-		obj_msg.frame_id = module->getCam().frame_id;
+		obj_msg.header=ros::Time::now();
+		obj_msg.header.frame_id = module->getCam().frame_id;
 		Point3d pt = module->getLocation();
 		obj_msg.point.x = pt.x;
 		obj_msg.point.y = pt.y;

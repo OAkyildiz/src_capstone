@@ -38,7 +38,7 @@ private:
 
 		tf::StampedTransform transform;
 		geometry_msgs::PointStamped detected_point;
-		detected_point.header.frame_id=obj->frame_id;
+		detected_point.header.frame_id=obj->header.frame_id;
 		detected_point.header.stamp=ros::Time(0);
 		detected_point.point=obj->point;
 		vision::Type type = obj->type;
