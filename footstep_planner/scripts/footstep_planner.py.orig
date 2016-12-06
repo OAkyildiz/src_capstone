@@ -22,7 +22,7 @@ ROBOT_NAME = None
 LEFT_FOOT_FRAME_NAME = None
 RIGHT_FOOT_FRAME_NAME = None
 
-goal = [3.3, - 0.35, 0.0]
+goal = [3.0, - 0.35, 0.0]
 buttonLocation = [0.0, 0.0, 0.0]
 #goalReached = False
 
@@ -65,8 +65,8 @@ def placeStep(goal, isSide, whichSide):
     if isSide:
         
         reach = SIDE_REACH
-        y_offset_tmp = Y_OFFSET
-        d=0
+        y_offset_tmp = 2*Y_OFFSET
+        d=.08
         Ly=-.2
     else:
         reach = FOOT_REACH
@@ -85,12 +85,7 @@ def placeStep(goal, isSide, whichSide):
     #   y_off        
 
     x=(numpy.cos(theta_path)*reach) - X_OFFSET 
-    y=(numpy.sin(theta_path)*reach) + y_offset_tmp + d
-
-    if isSide and whichSide == RIGHT:
-        y = Ly
-
-    print('reach',(numpy.sin(theta_path)*reach))
+    y=(numpy.sin(theta_path)*reach) + y_offset_tmp + d +Ly
 
     #Lx=x
     return [x,y]
@@ -119,7 +114,7 @@ def isGoalReached():
     return goal[0]<0.4
 
 def isGoalReachedSide():
-    return abs(goal[1])<0.04
+    return abs(goal[1])<0.03
 
 def goToButton():
     side = RIGHT
@@ -137,7 +132,7 @@ def goToButton():
 def sideStep():
     side = LEFT
     global goal
-    goal[1]=.35
+    goal[1]=0
     while not isGoalReachedSide():
         print("Side stepping:",goal)
         step = placeStep(goal, True, side)
@@ -156,7 +151,7 @@ def walkToFinish():
     while not isGoalReached():
         print("Next step towards")
         print(goal)
-        step = placeStep(goal, False, side)
+        step = placeStep(goal, true, side)
         msg = createNextFootstepMsg(side, step)
         footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
         waitForFootsteps(1)
