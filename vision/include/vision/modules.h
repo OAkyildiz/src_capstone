@@ -125,6 +125,8 @@ protected:
 	Point3d calculateLocation(Point L, Point R);
 	Point findVisualPair(int color_index);
 	vector<Mat> seperateChannels(Mat in);
+	Point getPixDistFromCenter(Point p1,Point p2);
+
 	Point getCentroid(Mat in);
 	void getRectangle(Mat in);
 	int checkSingleColor(Mat in);

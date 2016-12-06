@@ -111,6 +111,13 @@ int VisionModule::checkSingleColor
 	else count=0;
 	return count;
 }
+
+Point VisionModule::getPixDistFromCenter(Point p1,Point p2){
+	int x_error = (p1.x+p2.x-input.cols)/2;
+	int y_error = (p1.y+p2.y-input.rows)/2;
+
+	return Point(x_error,y_error);
+}
 Point VisionModule::getCentroid(Mat in){
 	Moments m = moments((in>=50),true);
 	Point2d p(m.m10/m.m00, m.m01/m.m00);
