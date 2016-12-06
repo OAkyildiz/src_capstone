@@ -185,7 +185,6 @@ if __name__ == '__main__':
                 
                 buttonSubscriber = rospy.Subscriber("/button_topic",goalReceived,queue_size=10)
                                 
-
                 rate = rospy.Rate(30) # 10hz
                 time.sleep(1)
 
