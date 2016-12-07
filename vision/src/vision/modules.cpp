@@ -70,7 +70,7 @@ Point3d VisionModule::calculateLocation(Point L, Point R){
 
 	double Z= cam.Tx_r/(xl-cam.cx_l-xr+cam.cx_r);
 	double Y=((yl+yr)/2-cam.cy)*Z/cam.fy;
-	double X=((xl)-cam.cx_l)*Z/cam.fx;
+	double X=Z*(xl+xr-cam.cx_l-cam.cx_r-cam.Tx_r/Z)/(2*cam.fx);
 	//ROS_INFO("(%.2f,%.2f,%.2f)",X,Y,Z);
 	return Point3d(X,Y,Z);
 }
