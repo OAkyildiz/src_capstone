@@ -1,0 +1,16 @@
+<!-- Launch file for task1-->
+<launch>
+  <arg name="stereo"         default="true"/>      
+  <arg name="webcam"         default="false"/>
+
+  <node  name="transforms" pkg="transforms" type="transforms_node" />
+
+
+  <node name="light_detection" pkg="vision" type="light_detection_node" >
+    
+    <param name="_stereo"            value="$(arg stereo)"/>    
+    <param name="_webcam"             value="$(arg webcam)"/>
+
+  </node>
+
+</launch>

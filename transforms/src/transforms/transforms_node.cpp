@@ -46,6 +46,7 @@ private:
 
 			objects_sub_= nh_-> subscribe("/objects", 30, &TransformNode::objectCallback, this);
 
+			led_pub_= nh_->advertise<geometry_msgs::PointStamped>("/leds", 30);
 			button_pub_= nh_->advertise<geometry_msgs::PointStamped>("/button", 30);
 			door_pub_= nh_->advertise<geometry_msgs::PointStamped>("/door", 30);
 
@@ -59,9 +60,9 @@ private:
 
 		tf::StampedTransform transform;
 		//TODO: move this to operatoion to constantly pub?
-		std::string target_frame;
-		std::string topic;
-		ros::Publisher*  selected_pub_ptr;
+		std::string target_frame = "head";
+		std::string topic = "/leds";
+		ros::Publisher*  selected_pub_ptr =&led_pub_;
 		//ROS_INFO("registering object");
 
 		geometry_msgs::PointStamped* detected_point;
@@ -77,9 +78,15 @@ private:
 
 		switch(type){
 		case vision::RED_LED:
+			ROS_INFO("RGB:(1,0,0)");
+			break;
 		case vision::GREEN_LED:
+			ROS_INFO("RGB:(1,0,0)");
+			break;
 		case vision::BLUE_LED:
-			target_frame="head";
+			ROS_INFO("RGB:(1,0,0)");
+			break;
+
 
 			//led publish
 			break;
@@ -102,7 +109,7 @@ private:
 			//ROS_INFO("try object");
 
 			tf_->waitForTransform(target_frame,detected_point->header.frame_id,
-			                              detection_time, ros::Duration(.5));
+			                              detection_time, ros::Duration(3));
 			tf_->transformPoint(target_frame, *detected_point, point_out);
 			ROS_INFO("Detected obj (->head): (x:%f y:%f z:%f)\n",
 		             point_out.point.x,

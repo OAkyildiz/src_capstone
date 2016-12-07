@@ -63,12 +63,12 @@ void VisionModule::setOutput(Mat *plug) {
 }
 
 Point3d VisionModule::calculateLocation(Point L, Point R){
-	int xl=L.x;
-	int yl=L.y;
-	int xr=R.x;
-	int yr=R.y;
-
-	double Z= cam.Tx_r/(xl-cam.cx_l-xr+cam.cx_r);
+	double xl=L.x;
+	double yl=L.y;
+	double xr=R.x;
+	double yr=R.y;
+	//ROS_INFO("%f, %f, %f, %f, %f, %f",cam.fx,cam.fy,cam.cx_l,cam.cx_r,cam.cy,cam.Tx_r);
+	double Z=-cam.Tx_r/(xl-cam.cx_l-xr+cam.cx_r);
 	double Y=((yl+yr)/2-cam.cy)*Z/cam.fy;
 	double X=Z*(xl+xr-cam.cx_l-cam.cx_r-cam.Tx_r/Z)/(2*cam.fx);
 	//ROS_INFO("(%.2f,%.2f,%.2f)",X,Y,Z);
@@ -265,20 +265,22 @@ void LightModule::LEDDetection(){
 		}
 	case OUTPUT:
 		//ROS_INFO("out");
-		print();
 		centroid_R = findVisualPair(type%3);
 		location = calculateLocation(centroid,centroid_R);
+		print();
 		draw();
 		break;
 
 	case DETECTED:
 		//Count pixels
-		if(countNonZero(*active_mask))
+		if(countNonZero(*active_mask)){
 		//more expensive location update
-		if(checkSingleColor(*active_mask,true))
+		//if(checkSingleColor(*active_mask,true)){
+			centroid = getCentroid(*active_mask);
 			centroid_R = findVisualPair(type%3);
 			px_error=getPixDistFromCenter(centroid,centroid_R);
 			draw();
+		}
 		else{
 			active_mask = NULL;
 			centroid = Point(0,0);

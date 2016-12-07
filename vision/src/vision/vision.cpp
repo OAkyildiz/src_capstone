@@ -93,8 +93,9 @@ void VisionNode::operation() {
 bool VisionNode::publish(){
 	if (module->sel!=NONE){
 		Point err = module->getPxError();
-		IntTuple err_msg(err.x, err.y);
-		
+		IntTuple err_msg;
+		err_msg.x=err.x;
+		err_msg.y=err.y;
 		target_px_error_pub.publish(err_msg);
 
 	}
@@ -138,9 +139,9 @@ void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
 void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstPtr& cam_info) {
 	string  frame_id=cam_info->header.frame_id;
 	boost::array<double, 12ul> P = cam_info->P;
-
+	//ROS_INFO("%f, %f, %f, %f, %f",P[0],P[5],P[2],P[6],P[3]);
 	if(!(module->camIsSet())){
-		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],0,P[2],P[6],0,P[3], frame_id };
+		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],P[2],P[2],P[6],0,P[3], frame_id };
 		module->loadCamera(cam);
 		ROS_INFO("loaded camera");
 

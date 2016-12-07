@@ -130,8 +130,8 @@ protected:
 	Point getPixDistFromCenter(Point p1,Point p2);
 
 	Point getCentroid(Mat in);
-	void getRectangle(Mat in, bool withRectangle);
-	int checkSingleColor(Mat in);
+	void getRectangle(Mat in);
+	int checkSingleColor(Mat in, bool withRectangle);
 
 	static void onTrackbar(int val, void* ptr);
 	static void onTrackbar2(int val, void* ptr);

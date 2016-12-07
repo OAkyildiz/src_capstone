@@ -10,9 +10,8 @@ Panels:
         - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
-        - /TF1/Tree1/world1
-        - /TF1/Tree1/world1/pelvis1
-      Splitter Ratio: 0.5
+        - /PointStamped1
+      Splitter Ratio: 0.633721
     Tree Height: 540
   - Class: rviz/Selection
     Name: Selection
@@ -513,7 +512,7 @@ Visualization Manager:
         head:
           Value: false
         head_hokuyo_frame:
-          Value: false
+          Value: true
         head_imu_link:
           Value: false
         hokuyo_link:
@@ -702,6 +701,16 @@ Visualization Manager:
                                 {}
       Update Interval: 0
       Value: true
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: true
+      History Length: 1
+      Name: PointStamped
+      Radius: 0.2
+      Topic: /leds
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -726,7 +735,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.48225
+      Distance: 19.8645
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -738,10 +747,10 @@ Visualization Manager:
         Z: 0
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.640398
+      Pitch: 0.0953982
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.84039
+      Yaw: 4.92858
     Saved: ~
 Window Geometry:
   Displays:
