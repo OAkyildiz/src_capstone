@@ -116,6 +116,7 @@ def updateGoal(dead_recon):
         goal[2] -= 0
     else:
         print("Goal updated with button location")
+
         goal[0] = buttonLocation.x
         goal[1] = buttonLocation.y
 
