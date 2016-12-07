@@ -16,6 +16,8 @@
 #include "vision/modules.h"
 
 #include "vision/DetectedObject.h"
+#include "vision/IntTuple.h"
+
 #include "tf/transform_listener.h"
 #include "tf/message_filter.h"
 #include "message_filters/subscriber.h"
@@ -77,6 +79,7 @@ private:
 	ros::Subscriber left_info_sub;
 	ros::Subscriber right_info_sub;
 
+	ros::Publisher target_px_error_pub;
 	ros::Publisher object_pub;
 
 	//static bool IS_STEREO = true;

@@ -45,9 +45,11 @@ void VisionNode::setupParams() {
 void VisionNode::setupCustom(){
 if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	/*subs and pubs*/
-
-	object_pub= nh_->advertise<vision::DetectedObject>("/objects", 30);
-	std::string info="camera_info";
+	
+	
+	target_px_error_pub = nh_->advertise<vision::IntTuple>("/target_object_rap", 30);
+	object_pub = nh_->advertise<vision::DetectedObject>("/objects", 30);
+	std::string info = "camera_info";
 
 	if(IS_WEBCAM){
 		IS_STEREO = false;	// for now, we override stereo
@@ -89,6 +91,14 @@ void VisionNode::operation() {
 		module->show();
 }
 bool VisionNode::publish(){
+	if (module->sel!=NONE){
+		Point err = module->getPxError();
+		IntTuple err_msg(err.x, err.y);
+		
+		target_px_error_pub.publish(err_msg);
+
+	}
+
 	if (module->sel==OUTPUT){
 		DetectedObject obj_msg;
 		obj_msg.header.frame_id = module->getCam().frame_id;

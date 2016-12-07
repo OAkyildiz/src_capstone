@@ -22,7 +22,7 @@ VisionModule::VisionModule(std::string name):
 
 {
 	cam.read = false;
-	contours_poly= vector<vector<Point> >(1);
+	contours_poly = vector<vector<Point> >(1);
 
 	namedWindow(window_name, 1);
 	startWindowThread();
@@ -100,13 +100,13 @@ vector<Mat> VisionModule::seperateChannels(Mat in){
 
 	return out;
 }
-int VisionModule::checkSingleColor
-(Mat in){
+int VisionModule::checkSingleColor(Mat in, bool withRectangle){
 	int count = countNonZero(in);
 	if(count>35) {
 		//ROS_INFO("Blue pix count: %d", count);//ROS_INFO("pix count: %d", cr);
 		centroid = getCentroid(in);
-		getRectangle(in);
+		if( withRectangle)
+			getRectangle(in);
 	}
 	else count=0;
 	return count;
@@ -244,17 +244,17 @@ void LightModule::LEDDetection(){
 	default:
 	case NONE:
 		sel=OUTPUT;
-		if 	(checkSingleColor(red_mask)){
+		if 	(checkSingleColor(red_mask,true)){
 			active_mask=&red_mask;
 			color_text="RED";
 			type=RED_LED;
 		}
-		else if (checkSingleColor(green_mask)){
+		else if (checkSingleColor(green_mask,true)){
 			active_mask=&green_mask;
 			color_text="GREEN";
 			type=GREEN_LED;
 		}
-		else if	(checkSingleColor(blue_mask)){
+		else if	(checkSingleColor(blue_mask,true)){
 			active_mask=&blue_mask;
 			color_text="BLUE";
 			type=BLUE_LED;
@@ -272,8 +272,12 @@ void LightModule::LEDDetection(){
 		break;
 
 	case DETECTED:
-
+		//Count pixels
 		if(countNonZero(*active_mask))
+		//more expensive location update
+		if(checkSingleColor(*active_mask,true))
+			centroid_R = findVisualPair(type%3);
+			px_error=getPixDistFromCenter(centroid,centroid_R);
 			draw();
 		else{
 			active_mask = NULL;
@@ -375,13 +379,14 @@ void ObjectModule::doVision(){
 	vector<Mat> masks=seperateChannels(hsv);
 	red_mask=masks[RED_LED];
 
-	if (checkSingleColor(red_mask)){
+	if (checkSingleColor(red_mask,true)){
 		sel=OUTPUT;
 		type=BUTTON;
 		print();
 		centroid_R = findVisualPair(RED_LED);
 		location = calculateLocation(centroid,centroid_R);
 		draw();
+		px_error=getPixDistFromCenter(centroid,centroid_R);
 	}
 	else{
 		centroid = Point(0,0);

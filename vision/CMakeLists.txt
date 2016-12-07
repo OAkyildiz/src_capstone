@@ -49,7 +49,7 @@ find_package(OpenCV 2 REQUIRED )
  add_message_files(
    FILES
    DetectedObject.msg
-#   Message2.msg
+   IntTuple.msg
  )
 
 ## Generate services in the 'srv' folder

@@ -105,7 +105,9 @@ public:
 	     return type;
 	       }
 
-
+	Point getPxError() const {
+	     return px_error;
+	       }
 
 protected:
 	//VisionNode* parent;
@@ -120,7 +122,7 @@ protected:
     Type type;
 	vector<vector<Point> > contours_poly;
 	Point centroid, centroid_R;
-
+	Point px_error;
 
 	Point3d calculateLocation(Point L, Point R);
 	Point findVisualPair(int color_index);
@@ -128,7 +130,7 @@ protected:
 	Point getPixDistFromCenter(Point p1,Point p2);
 
 	Point getCentroid(Mat in);
-	void getRectangle(Mat in);
+	void getRectangle(Mat in, bool withRectangle);
 	int checkSingleColor(Mat in);
 
 	static void onTrackbar(int val, void* ptr);
