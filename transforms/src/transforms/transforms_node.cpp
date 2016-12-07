@@ -81,10 +81,10 @@ private:
 			ROS_INFO("RGB:(1,0,0)");
 			break;
 		case vision::GREEN_LED:
-			ROS_INFO("RGB:(1,0,0)");
+			ROS_INFO("RGB:(0,1,0)");
 			break;
 		case vision::BLUE_LED:
-			ROS_INFO("RGB:(1,0,0)");
+			ROS_INFO("RGB:(0,0,1)");
 			break;
 
 
