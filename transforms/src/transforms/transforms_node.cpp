@@ -111,7 +111,7 @@ private:
 			tf_->waitForTransform(target_frame,detected_point->header.frame_id,
 			                              detection_time, ros::Duration(3));
 			tf_->transformPoint(target_frame, *detected_point, point_out);
-			ROS_INFO("Detected obj (->head): (x:%f y:%f z:%f)\n",
+			ROS_INFO("Detected obj (->head): (x:%.3f y:%.3f z:%.3f)\n",
 		             point_out.point.x,
 		             point_out.point.y,
 		             point_out.point.z);

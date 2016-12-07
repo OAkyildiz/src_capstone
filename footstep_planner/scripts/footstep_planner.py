@@ -129,7 +129,7 @@ def goToButton():
     side = RIGHT
     step=[0,0]    
     while not isGoalReached():
-        updateGoal(False)
+        updateGoal(step)
         print("Next step towards:",goal)
         step = placeStep(goal, False, side)
         print("-", step)
@@ -181,7 +181,7 @@ def createFootStepInPlace(stepSide):
     else:
         foot_frame = LEFT_FOOT_FRAME_NAME
 
-    footWorld = tfBuffer.lookup_transform('pelvis', foot_frame, rospy.Time())
+    footWorld = tfBuffer.lookup_transform('world', foot_frame, rospy.Time())
     footstep.orientation = footWorld.transform.rotation
     footstep.location = footWorld.transform.translation
 
