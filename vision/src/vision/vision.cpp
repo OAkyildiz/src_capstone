@@ -47,7 +47,7 @@ if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	/*subs and pubs*/
 	
 	
-	target_px_error_pub = nh_->advertise<vision::IntTuple>("/target_object_rap", 30);
+	target_px_error_pub = nh_->advertise<vision::IntTuple>("/target_px_error", 30);
 	object_pub = nh_->advertise<vision::DetectedObject>("/objects", 30);
 	std::string info = "camera_info";
 

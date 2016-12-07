@@ -8,6 +8,7 @@ import numpy
 
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import PointStamped, Point
 
 from ihmc_msgs.msg import FootstepStatusRosMessage
 from ihmc_msgs.msg import FootstepDataListRosMessage
@@ -23,7 +24,7 @@ LEFT_FOOT_FRAME_NAME = None
 RIGHT_FOOT_FRAME_NAME = None
 
 goal = [3.3, - 0.35, 0.0]
-buttonLocation = [0.0, 0.0, 0.0]
+buttonLocation = Point()
 #goalReached = False
 
 LEG_LINK_1 = .8342
@@ -107,11 +108,14 @@ def createNextFootstepMsg(side,point):
 #feedback: bool
 def updateGoal(dead_recon):
     global goal, buttonLocation
+    print buttonLocation
     if dead_recon:
+        print("Goal updated with assumed step")
         goal[0] -= dead_recon[0]
         goal[1] -= dead_recon[1]
         goal[2] -= 0
     else:
+        print("Goal updated with button location")
         goal[0] = buttonLocation.x
         goal[1] = buttonLocation.y
 
@@ -123,14 +127,16 @@ def isGoalReachedSide():
 
 def goToButton():
     side = RIGHT
+    step=[0,0]    
     while not isGoalReached():
+        updateGoal(False)
         print("Next step towards:",goal)
         step = placeStep(goal, False, side)
         print("-", step)
         msg = createNextFootstepMsg(side, step)
         footStepListPublisher.publish(msg) # change that into FootStepwaitForFootsteps(1)
         waitForFootsteps(1)
-        updateGoal(step)
+        
         side ^= 1
         print(".")
 
@@ -175,7 +181,7 @@ def createFootStepInPlace(stepSide):
     else:
         foot_frame = LEFT_FOOT_FRAME_NAME
 
-    footWorld = tfBuffer.lookup_transform('world', foot_frame, rospy.Time())
+    footWorld = tfBuffer.lookup_transform('pelvis', foot_frame, rospy.Time())
     footstep.orientation = footWorld.transform.rotation
     footstep.location = footWorld.transform.translation
 
@@ -209,7 +215,7 @@ def waitForFootsteps(numberOfSteps):
     stepCounter = 0
     while stepCounter < numberOfSteps:
         rate.sleep()
-    rospy.loginfo('finished set of steps')
+    #rospy.loginfo('took a step')
 
 
 def receivedFootStepStatus(msg):
@@ -218,13 +224,13 @@ def receivedFootStepStatus(msg):
         stepCounter += 1
 
 
-def goalReceived(msg):
+def receivedGoal(msg):
     global buttonLocation
     buttonLocation = msg.point
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('ihmc_walk_test')
+        rospy.init_node('footstep_planner')
 
         if not rospy.has_param('/ihmc_ros/robot_name'):
             rospy.logerr("Cannot run walk_test.py, missing parameters!")
@@ -246,10 +252,10 @@ if __name__ == '__main__':
                 tfBuffer = tf2_ros.Buffer()
                 tfListener = tf2_ros.TransformListener(tfBuffer)
                 
-                #buttonSubscriber = rospy.Subscriber("/button",goalReceived,queue_size=10)
+                buttonSubscriber = rospy.Subscriber("/button", PointStamped, receivedGoal, queue_size=10)
                                 
 
-                rate = rospy.Rate(30) # 10hz
+                rate = rospy.Rate(30) # 30hz
                 time.sleep(1)
 
                 # make sure the simulation is running otherwise wait
@@ -258,7 +264,8 @@ if __name__ == '__main__':
                     while footStepListPublisher.get_num_connections() == 0:
                         rate.sleep()
 
-                if not rospy.is_shutdown():                                                                                                
+                if not rospy.is_shutdown():
+                                                                                                
                     goToButton()
                     rospy.sleep(5)
                     sideStep()
