@@ -100,6 +100,7 @@ void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
 void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstPtr& cam_info) {
 }
 
+//When the images are ready from camera we convert them to  OpenCV image format which is a Mat with specified type. ( 8bit BGR in this case)
 int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image) {
 
 	cv_bridge::CvImagePtr cv_ptr;
