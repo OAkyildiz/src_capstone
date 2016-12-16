@@ -38,6 +38,7 @@ void VisionModule::getFrame(Mat img_in) {
 void VisionModule::setOutput(Mat *plug) {
 	output=plug;
 }
+//toggle between different Mat member fields added to the framelist.
 void VisionModule::toggleOutput(){
 	vector<Mat*>::iterator it,end;
 	int next;
@@ -55,11 +56,9 @@ void VisionModule::toggleOutput(){
 		setOutput(framelist[next]);
 		ROS_INFO("switching output to %d of %d",next+1,int(framelist.size()));
 	}
-
-
-
-
 }
+
+// mouse handler function to print pixel values on left click and call toggleOutput on right click.
 void VisionModule::mouseHandler(int event, int x, int y, int flags, void* ptr)
 {
 	VisionModule* mod = (VisionModule*)(ptr);
@@ -155,16 +154,19 @@ void LightModule::LEDDetection(){
 	switch (sel) {
 	default:
 	case NOLED:
+		//check each layer	
 		sel=DETECTED;
+			//red
 		if 	(checkSingleLed(red_mask)){
 			active_mask=&red_mask;
 			color_text="RED";
 				}
+			//green
 		else if (checkSingleLed(green_mask)){
 			active_mask=&green_mask;
 			color_text="GREEN";
-
 				}
+			//blue
 		else if	(checkSingleLed(blue_mask)){
 			active_mask=&blue_mask;
 			color_text="BLUE";
@@ -174,24 +176,25 @@ void LightModule::LEDDetection(){
 			break;
 		}
 		print();
-
 		break;
-
-
+		
 	case DETECTED:
-
+		//when detected, just keep checking the detected mask to see if led is off 
 		if(countNonZero(*active_mask))
+			//keep drawing the same point and polygon
 			draw();
 		else{
+			//reset variables when the LED is off
 				active_mask = NULL;
 				centroid = Point(0,0);
 				color = Scalar(0,0,0);
 				sel = NOLED;
 		}
-
 		break;
 	}
 }
+
+// DEPRECATED
 void LightModule::colorFromMaxIntensity() {
 
 	//cvtGray(blursize, 3);
@@ -219,6 +222,8 @@ void LightModule::colorFromMaxIntensity() {
 
 	}
 }
+
+//count pixels in a given mask (this is how we check detection)
 int LightModule::checkSingleLed(Mat in){
 	int count = countNonZero(in);
 	if(count>35) {
@@ -232,6 +237,7 @@ int LightModule::checkSingleLed(Mat in){
 
 }
 
+//take a CV::Mat that is HSV and seperate main colors into bitmasks.
 void LightModule::seperateChannels(Mat in, Mat out){
 	// create local Mats
 
