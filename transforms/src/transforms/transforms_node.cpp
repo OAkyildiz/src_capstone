@@ -59,7 +59,7 @@ private:
 		ros::Time detection_time=obj->header.stamp;
 
 		tf::StampedTransform transform;
-		//TODO: move this to operatoion to constantly pub?
+		//the topic name and string variables are set to LEDs as default
 		std::string target_frame = "head";
 		std::string topic = "/leds";
 		ros::Publisher*  selected_pub_ptr =&led_pub_;
@@ -75,28 +75,31 @@ private:
 
 		geometry_msgs::PointStamped point_out;
 		
-
+		//each case describes a dtection case of either LEDs or objects.
 		switch(type){
-		case vision::RED_LED:
+		//red LED		
+		case vision::RED_LED: 
 			ROS_INFO("RGB:(1,0,0)");
-			break;
+			break;\
+		//green LED
 		case vision::GREEN_LED:
 			ROS_INFO("RGB:(0,1,0)");
 			break;
+		//blue LED
 		case vision::BLUE_LED:
 			ROS_INFO("RGB:(0,0,1)");
 			break;
 
 
-			//led publish
 			break;
 		case vision::BUTTON:
+		//set frame and button topic
 			target_frame="pelvis";
 			topic="/button";
 			selected_pub_ptr=&button_pub_;
 
 			break;
-			//set frame
+		//set frame and door topic
 		case vision::DOOR_OPEN:
 		case vision::DOOR_CLOSED:
 			target_frame="pelvis";
@@ -107,9 +110,11 @@ private:
 		
 		try {
 			//ROS_INFO("try object");
-
+			//There is a slight delay between joint states and points we detected and stamped
+			//wait for transforms
 			tf_->waitForTransform(target_frame,detected_point->header.frame_id,
 			                              detection_time, ros::Duration(3));
+			//transform point.
 			tf_->transformPoint(target_frame, *detected_point, point_out);
 			ROS_INFO("Detected obj (->head): (x:%.3f y:%.3f z:%.3f)\n",
 		             point_out.point.x,
@@ -118,7 +123,7 @@ private:
 		}
 		catch (tf::TransformException &ex){
 
-			ROS_INFO ("Failure %s\n", ex.what()); //Print exception which was caught
+			ROS_INFO ("Failure %s\n", ex.what()); //Print exception for TF error
 		}
 		//ROS_INFO("publish object");
 
@@ -128,7 +133,7 @@ private:
 };
 
 
-
+//Run the node
 int main(int argc, char** argv){
 	TransformNode* tfnode = new TransformNode(argc,argv);
 	tfnode->init("object_tf");
