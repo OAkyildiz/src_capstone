@@ -9,9 +9,10 @@
 
 #include "vision/vision.h"
 
+/*ros_parameters for camera hardware */
 bool IS_STEREO = true;
 bool IS_WEBCAM = false;
-bool safe = false;
+bool safe = false; //flag for camera images being ready to process
 
 std::string CAMERA_NAMESPACE = "/multisense/camera";
 std::string IMAGE_TYPE;
@@ -27,11 +28,11 @@ VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
 {
 	}
 
-
+//define abstract function from Node to add vision parameters
 void VisionNode::setupParams() {
 	it_ = new image_transport::ImageTransport(*nh_);
 	pnh_->param<bool>("stereo", IS_STEREO, IS_STEREO); // lets  default param values to
-	pnh_->param<bool>("webcam", IS_WEBCAM,IS_WEBCAM);  // source ode's variable valeus
+	pnh_->param<bool>("webcam", IS_WEBCAM,IS_WEBCAM);  // source code's variable valeus
 
 	pnh_->param<std::string>("image",IMAGE_TYPE,"image_raw");
 
@@ -45,7 +46,7 @@ void VisionNode::setupCustom(){
 if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	/*subs and pubs*/
 	std::string info="camera_info";
-
+	
 	if(IS_WEBCAM){
 		IS_STEREO = false;	// for now, we override stereo
 							// to false if webcam is used.
