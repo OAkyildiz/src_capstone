@@ -12,7 +12,6 @@ int THRESHOLD = 10;
 using namespace vision;
 using namespace cv;
 
-
 /////////////
 /* VisionMoudel: Base class*/
 VisionModule::VisionModule(std::string name):
@@ -61,7 +60,7 @@ bool VisionModule::camIsSet(){
 void VisionModule::setOutput(Mat *plug) {
 	output=plug;
 }
-
+//disparity calculation!
 Point3d VisionModule::calculateLocation(Point L, Point R){
 	double xl=L.x;
 	double yl=L.y;
@@ -74,6 +73,7 @@ Point3d VisionModule::calculateLocation(Point L, Point R){
 	//ROS_INFO("(%.2f,%.2f,%.2f)",X,Y,Z);
 	return Point3d(X,Y,Z);
 }
+//find the corresponding bitmask for matching color on the other camera
 Point VisionModule::findVisualPair(int color_index){
 	Mat hsv_R;
 	cvtColor(input_R, hsv_R, CV_BGR2HSV);
@@ -81,7 +81,7 @@ Point VisionModule::findVisualPair(int color_index){
 	return getCentroid(masks[color_index]);
 
 }
-
+//Seperate  HSV image into seperetae bitmasks for each main color.
 vector<Mat> VisionModule::seperateChannels(Mat in){
 	// create local Mats
 
@@ -100,18 +100,21 @@ vector<Mat> VisionModule::seperateChannels(Mat in){
 
 	return out;
 }
+//check a single Mat for pixel count and calculate the centroid ienough pxiels exist.
 int VisionModule::checkSingleColor(Mat in, bool withRectangle){
 	int count = countNonZero(in);
 	if(count>35) {
 		//ROS_INFO("Blue pix count: %d", count);//ROS_INFO("pix count: %d", cr);
+		//get left image's centroid
 		centroid = getCentroid(in);
+		//put the rectangle
 		if( withRectangle)
 			getRectangle(in);
 	}
 	else count=0;
 	return count;
 }
-
+//Get pixel's distance from center
 Point VisionModule::getPixDistFromCenter(Point p1,Point p2){
 	int x_error = (p1.x+p2.x-input.cols)/2;
 	int y_error = (p1.y+p2.y-input.rows)/2;
@@ -123,8 +126,8 @@ Point VisionModule::getCentroid(Mat in){
 	Point2d p(m.m10/m.m00, m.m01/m.m00);
 	return p;
 }
+//Approximate bitmasks to rectanges. Used for showing objects output window
 void VisionModule::getRectangle(Mat in){
-	/// Function header
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 
@@ -316,9 +319,6 @@ void LightModule::colorFromMaxIntensity() {
 
 	}
 }
-
-
-
 /*image helpers*/
 void LightModule::cvtGray(){
 	cvtColor(input, grayscale, CV_BGR2GRAY);
@@ -359,9 +359,6 @@ void LightModule::onTrackbar2(int val, void* ptr){
 	mod->setBlurSize(val);
 }
 
-
-
-
 void LightModule::onToggle(int state, void* ptr){
 	LightModule* mod = (LightModule*)(ptr);
 	mod->setBlur(state);
@@ -373,7 +370,6 @@ void LightModule::onToggle(int state, void* ptr){
 ObjectModule::ObjectModule(std::string name):
 											VisionModule(name)
 {
-
 }
 
 void ObjectModule::doVision(){
