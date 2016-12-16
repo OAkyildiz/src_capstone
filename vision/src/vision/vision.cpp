@@ -9,14 +9,13 @@
 
 #include "vision/vision.h"
 
+// parameters for hardware congif.
 bool IS_STEREO = true;
 bool IS_WEBCAM = false;
 bool safe = false;
 
 std::string CAMERA_NAMESPACE = "/multisense/camera";
 std::string IMAGE_TYPE;
-
-
 
 using namespace vision;
 /* Node */
@@ -28,7 +27,7 @@ VisionNode::VisionNode(VisionModule* module, int argc, char** argv):
 	//module->setParent(this);
 	}
 
-
+//Setup ros parameters from parameter server
 void VisionNode::setupParams() {
 	it_ = new image_transport::ImageTransport(*nh_);
 	pnh_->param<bool>("stereo", IS_STEREO, IS_STEREO); // lets  default param values to
@@ -45,12 +44,10 @@ void VisionNode::setupParams() {
 void VisionNode::setupCustom(){
 if(IMAGE_TYPE != "image_raw") IMAGE_TYPE = "image_raw/" + IMAGE_TYPE;
 	/*subs and pubs*/
-	
-	
 	target_px_error_pub = nh_->advertise<vision::IntTuple>("/target_px_error", 30);
 	object_pub = nh_->advertise<vision::DetectedObject>("/objects", 30);
 	std::string info = "camera_info";
-
+	//set the correct subscribers depending on camera type
 	if(IS_WEBCAM){
 		IS_STEREO = false;	// for now, we override stereo
 							// to false if webcam is used.
@@ -91,6 +88,7 @@ void VisionNode::operation() {
 		module->show();
 }
 bool VisionNode::publish(){
+	//publish the pixeldistance from center for neck controller
 	if (module->sel!=NONE){
 		Point err = module->getPxError();
 		IntTuple err_msg;
@@ -99,7 +97,7 @@ bool VisionNode::publish(){
 		target_px_error_pub.publish(err_msg);
 
 	}
-
+	//create the dtected object only if module set it's state to OUTPUT
 	if (module->sel==OUTPUT){
 		DetectedObject obj_msg;
 		obj_msg.header.frame_id = module->getCam().frame_id;
@@ -131,6 +129,7 @@ void VisionNode::visionCallback(const sensor_msgs::ImageConstPtr& image) {
 
 
 }
+// 2nd camera calllback
 void VisionNode::disparityCallback(const sensor_msgs::ImageConstPtr& image) {
 	convertImage(image, STEREO_RIGHT);
 
@@ -144,12 +143,11 @@ void vision::VisionNode::camereInfoCallback (const sensor_msgs::CameraInfoConstP
 		Camera cam = {true,cam_info->height,cam_info->width,P[0],P[5],P[2],P[2],P[6],0,P[3], frame_id };
 		module->loadCamera(cam);
 		ROS_INFO("loaded camera");
-
 	}
 }
-
+//Convert ROS images to OpenCV's cv::Mat
 int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image, int sel) {
-
+	// except in case message is blank
 	cv_bridge::CvImagePtr cv_ptr;
 	try
 	{
@@ -166,9 +164,6 @@ int VisionNode::convertImage(const sensor_msgs::ImageConstPtr image, int sel) {
 		return 1;
 	}
 }
-
-
-
 //} //namespace vision
 
 
